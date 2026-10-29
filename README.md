@@ -8,6 +8,8 @@ A free web app for TABLE's weekly food deliveries (Orange County, NC). The volun
 
 No accounts, no server, no API keys. Runs entirely in the browser.
 
+**Live app:** https://hobbs2k8.github.io/TABLE-Delivery/
+**Picture walkthrough:** https://hobbs2k8.github.io/TABLE-Delivery/walkthrough.html ([source](public/walkthrough.html))
 Staff instructions: **[docs/MONDAY-GUIDE.md](docs/MONDAY-GUIDE.md)**.
 
 ---
@@ -36,6 +38,7 @@ npm run dev        # http://localhost:5173
 npm test           # unit tests (Vitest)
 npm run build      # production build in dist/
 node scripts/make-sample.mjs   # regenerate the fake sample data
+npm run walkthrough:shots      # retake walkthrough screenshots (needs `npm run dev` running + Google Chrome)
 ```
 
 Try it with **"Try it with made-up sample data"** on the upload page, or upload `sample-data/monday-macro.xlsx`.

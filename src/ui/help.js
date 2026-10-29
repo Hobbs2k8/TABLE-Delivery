@@ -23,6 +23,7 @@ export function openHelp() {
           <h3 style="margin-bottom:6px">${raw(icons.lock)} Privacy</h3>
           <p class="muted">Names, phones and unit numbers never leave this computer. Building pins are saved in this browser. Use “Download a backup” in the menu to keep a copy.</p>
         </div>
+        <a class="btn btn-outline" href="${import.meta.env.BASE_URL}walkthrough.html" target="_blank" rel="noopener">See the step-by-step walkthrough with pictures</a>
         <button class="btn btn-primary" data-close>Got it</button>
       </div>
     </aside>`);

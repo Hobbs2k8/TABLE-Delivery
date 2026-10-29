@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Route Sheets Walkthrough</title>
+    <meta name="description" content="A step-by-step picture guide to TABLE Route Sheets: uploading the weekly file, setting up apartment complexes, and printing driver sheets." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e0435a'/%3E%3Cpath d='M9 11h14M16 11v12' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <style>
+      /* Screenshots come from scripts/walkthrough-shots.mjs (made-up sample data only). */
+      :root {
+        --bg: #ffffff; --soft: #f7f7f7; --text: #222222; --muted: #6a6a6a; --border: #dddddd;
+        --accent: #e0435a; --accent-soft: #fff0f2; --primary: #222222; --primary-text: #ffffff;
+        --note: #fff5e6; --note-border: #f0c58a;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #121212; --soft: #1c1c1c; --text: #f1f1f1; --muted: #a8a8a8; --border: #3a3a3a;
+          --accent: #ff6b81; --accent-soft: #3a1d23; --primary: #f1f1f1; --primary-text: #121212;
+          --note: #33260f; --note-border: #6b4a1a; color-scheme: dark;
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #121212; --soft: #1c1c1c; --text: #f1f1f1; --muted: #a8a8a8; --border: #3a3a3a;
+        --accent: #ff6b81; --accent-soft: #3a1d23; --primary: #f1f1f1; --primary-text: #121212;
+        --note: #33260f; --note-border: #6b4a1a; color-scheme: dark;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 6px; }
+      header.top { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); }
+      .top-inner { max-width: 1080px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+      .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--accent); text-decoration: none; font-size: 1.15rem; }
+      .brand svg { width: 30px; height: 30px; }
+      .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 20px; border-radius: 8px; background: var(--primary); color: var(--primary-text); font-weight: 700; text-decoration: none; white-space: nowrap; }
+      main { max-width: 1080px; margin: 0 auto; padding: 48px 24px 96px; }
+      .hero h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 16px; }
+      .hero p { font-size: 1.2rem; color: var(--muted); max-width: 680px; margin: 0; }
+      .toc { margin: 40px 0 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; list-style: none; padding: 0; }
+      .toc a { display: block; height: 100%; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; text-decoration: none; transition: box-shadow 0.2s; }
+      .toc a:hover { box-shadow: 0 6px 16px rgb(0 0 0 / 12%); }
+      .toc strong { display: block; }
+      .toc span { color: var(--muted); font-size: 0.9rem; }
+      section.part { margin-top: 80px; scroll-margin-top: 90px; }
+      .part > h2 { font-size: 1.9rem; letter-spacing: -0.01em; margin: 0 0 6px; }
+      .part > .lede { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
+      .step { display: grid; grid-template-columns: 300px 1fr; gap: 32px; align-items: start; padding: 28px 0; border-top: 1px solid var(--border); }
+      .step h3 { margin: 0 0 8px; font-size: 1.2rem; display: flex; gap: 12px; align-items: baseline; }
+      .num { flex: none; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: inline-grid; place-items: center; font-weight: 800; font-size: 0.95rem; }
+      .step p, .step li { color: var(--text); }
+      .step ul { padding-left: 20px; margin: 8px 0; }
+      .step p { margin: 0 0 10px; }
+      figure { margin: 0; }
+      figure a { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 4px 12px rgb(0 0 0 / 5%); }
+      figure img { display: block; width: 100%; height: auto; }
+      figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
+      .note { background: var(--note); border: 1px solid var(--note-border); border-radius: 12px; padding: 14px 18px; margin: 12px 0 0; font-size: 0.95rem; }
+      .tip { background: var(--soft); border-radius: 12px; padding: 14px 18px; margin: 12px 0 0; font-size: 0.95rem; }
+      .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      kbd, .ui { font-weight: 700; white-space: nowrap; }
+      .faq dt { font-weight: 700; margin-top: 20px; }
+      .faq dd { margin: 4px 0 0; color: var(--muted); }
+      footer { border-top: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; }
+      footer div { max-width: 1080px; margin: 0 auto; padding: 24px; }
+      @media (max-width: 820px) {
+        .step { grid-template-columns: 1fr; gap: 16px; }
+        .pair { grid-template-columns: 1fr; }
+        main { padding: 32px 16px 64px; }
+        .top-inner { padding: 12px 16px; }
+      }
+      @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+      html { scroll-behavior: smooth; }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-inner">
+        <a class="brand" href="./">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor" /><path d="M9 11h14M16 11v12" stroke="#fff" stroke-width="3.5" stroke-linecap="round" /></svg>
+          Route sheets walkthrough
+        </a>
+        <a class="btn" href="./">Open the app</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>From Monday's file to driver sheets, step by step</h1>
+        <p>A picture guide for TABLE staff. Every screenshot uses made-up sample data, with no real families. Most weeks take about five minutes. New apartment complexes take a few extra minutes, once.</p>
+      </div>
+
+      <ol class="toc">
+        <li><a href="#weekly"><strong>1. Every Monday</strong><span>Upload the file and check the routes</span></a></li>
+        <li><a href="#apartments"><strong>2. Apartment complexes</strong><span>Set up buildings once, use every week</span></a></li>
+        <li><a href="#houses"><strong>3. Hard-to-find houses</strong><span>Pin the exact driveway</span></a></li>
+        <li><a href="#drivers"><strong>4. Print &amp; send</strong><span>What drivers get</span></a></li>
+        <li><a href="#safe"><strong>5. Keep your pins safe</strong><span>Backups and common questions</span></a></li>
+      </ol>
+
+      <!-- ===================== 1. WEEKLY ===================== -->
+      <section class="part" id="weekly">
+        <h2>1. Every Monday</h2>
+        <p class="lede">Export the week's file the way you already do (the Routific export or the Monday spreadsheet), then open the app.</p>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">1</span> The first time, read “How this works”</h3>
+            <p>It opens by itself on your first visit. You can reopen it any time from the top right.</p>
+            <p class="tip">Always use the <strong>same browser on the same computer</strong>. Your apartment building pins are saved in that browser.</p>
+          </div>
+          <figure><a href="walkthrough/01-help.jpg"><img src="walkthrough/01-help.jpg" alt="The How this works panel listing three steps: upload, review, print or text." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">2</span> Upload the file</h3>
+            <p>Drag the file onto the page, or click <span class="ui">Choose a file</span>. Excel (.xlsx) and CSV both work.</p>
+            <p>Family names, phone numbers and apartment numbers never leave your computer.</p>
+          </div>
+          <figure><a href="walkthrough/02-upload.jpg"><img src="walkthrough/02-upload.jpg" alt="Upload screen with a large drop area and a Choose a file button." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">3</span> Check the columns (first time only)</h3>
+            <p>The app guesses which column is which and shows an example from your file next to each one. If a guess is wrong, pick the right column from the list.</p>
+            <p>Only <strong>Route number</strong> and <strong>Street address</strong> are required. Click <span class="ui">Use these columns</span>.</p>
+            <p class="tip">Next week, if the file has the same columns, this step is skipped.</p>
+          </div>
+          <figure><a href="walkthrough/03-columns.jpg"><img src="walkthrough/03-columns.jpg" alt="Column check screen matching Route, Address, Apt and Household to the file's columns." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">4</span> Look at “Needs attention”</h3>
+            <p>Everything that needs fixing is listed in one place at the top, with a button that takes you straight to the fix.</p>
+            <ul>
+              <li><strong>Green “Everything is ready”</strong>: nothing to do. Skip to <a href="#drivers">Print &amp; send</a>.</li>
+              <li><strong>“Complexes need building locations”</strong>: a new apartment complex. See <a href="#apartments">section 2</a>.</li>
+              <li><strong>“New units have no building”</strong>: a family moved into a unit your rules don't cover yet.</li>
+            </ul>
+            <p>Below that, routes are listed on the left. Click one to see its driver sheet on the right.</p>
+            <p class="note">You can always continue. Anything unresolved just goes to the complex's main address, like it does today.</p>
+          </div>
+          <figure><a href="walkthrough/04-review.jpg"><img src="walkthrough/04-review.jpg" alt="Review screen with a Needs attention box listing four complexes and Set up buildings buttons." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+      </section>
+
+      <!-- ===================== 2. APARTMENTS ===================== -->
+      <section class="part" id="apartments">
+        <h2>2. Setting up an apartment complex</h2>
+        <p class="lede">Usually every household in a complex lands on the leasing office, and drivers hunt for the right building. Set a complex up once, and every week after, each family's stop goes straight to their building.</p>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">1</span> Before: every unit goes to the front entrance</h3>
+            <p>On the driver sheet, apartment stops show a warning: <em>“Goes to the main entrance: buildings not set up.”</em></p>
+            <p>Click <span class="ui">Set up buildings</span> on the warning or in “Needs attention”.</p>
+            <p class="tip">If two families just share a house (a duplex), click <span class="ui">Not an apartment? Pin this house</span> instead.</p>
+          </div>
+          <figure><a href="walkthrough/05-sheet-warnings.jpg"><img src="walkthrough/05-sheet-warnings.jpg" alt="Driver sheet rows for an apartment complex with orange warnings that they go to the main entrance." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">2</span> The map opens on the complex</h3>
+            <p>You'll see a satellite photo with building outlines drawn in white. The outlines come from OpenStreetMap, so most buildings are already traced.</p>
+            <p>Switch to <span class="ui">Streets</span> to see road names.</p>
+            <p class="note">If the outlines don't load (the free map server is sometimes busy), click <span class="ui">Try again</span>, or use <span class="ui">Drop a pin</span> and click each building yourself.</p>
+          </div>
+          <figure><a href="walkthrough/06-setup-map.jpg"><img src="walkthrough/06-setup-map.jpg" alt="Complex setup: satellite map with white building outlines, and a side panel with the complex name and steps." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">3</span> Click each building</h3>
+            <p>Click a building's outline to add it. It turns red and gets a label. If OpenStreetMap knows the building's name or letter, it's filled in for you.</p>
+            <ul>
+              <li>Rename buildings the way drivers will see them (“Building C”, “400”, “Back row”).</li>
+              <li><strong>Drag the label</strong> to where a driver should park, near the front door. Google Maps sends drivers to that exact spot.</li>
+              <li>Add a note if it helps: “Enter from Sycamore Ln side”, “Gate code at office”.</li>
+            </ul>
+            <p>If the complex has more than one street address, tick it under <strong>“Also part of this complex?”</strong></p>
+          </div>
+          <figure><a href="walkthrough/07-buildings.jpg"><img src="walkthrough/07-buildings.jpg" alt="Four buildings marked in red with labels F, C, G and A; the side panel lists them with note fields." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">4</span> Say which units are in each building</h3>
+            <p>Add a few simple rules instead of assigning every unit by hand:</p>
+            <ul>
+              <li><strong>A range:</strong> 101 to 124 → Building 1</li>
+              <li><strong>Starts with:</strong> 2 → Building 2 (201, 215, 2B…)</li>
+              <li><strong>Ends with:</strong> B → Building B (4B, 11B…)</li>
+              <li><strong>Looks like:</strong> 1xx → Building F (x means any digit)</li>
+              <li><strong>One unit:</strong> 7 → Office</li>
+              <li><strong>Every other unit:</strong> everything left over</li>
+            </ul>
+            <p class="tip">Ask the leasing office for their site map. Units usually follow the building number.</p>
+          </div>
+          <figure><a href="walkthrough/08-rules.jpg"><img src="walkthrough/08-rules.jpg" alt="Rule builder with four rules: units like 1xx to F, 2xx to C, 3xx to G, 4xx to A." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">5</span> Check this week's units</h3>
+            <p>The list shows every unit in this week's file and which building it goes to.</p>
+            <p>Units in <strong>orange</strong> don't match any rule. Click one, pick its building, and click <span class="ui">Save</span>.</p>
+            <p>When it looks right, click <span class="ui">Save complex</span>.</p>
+          </div>
+          <figure><a href="walkthrough/09-preview.jpg"><img src="walkthrough/09-preview.jpg" alt="Preview listing units by building, with unplaced units 4B, 9C and No unit shown in orange, and unit 4B being assigned to building A." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">6</span> Done, for every week after</h3>
+            <p>The complex drops off the “Needs attention” list. If a family later moves into a unit your rules don't cover, you'll see <em>“New units have no building”</em>. Click <span class="ui">Add units to buildings</span> and place it the same way.</p>
+          </div>
+          <figure><a href="walkthrough/10-review-after.jpg"><img src="walkthrough/10-review-after.jpg" alt="Review screen after setup: fewer complexes need attention, and one line says 2 new units have no building." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+      </section>
+
+      <!-- ===================== 3. HOUSES ===================== -->
+      <section class="part" id="houses">
+        <h2>3. Hard-to-find houses</h2>
+        <p class="lede">For long rural driveways or houses Google gets wrong.</p>
+        <div class="step">
+          <div>
+            <h3><span class="num">1</span> Pin the exact spot</h3>
+            <p>On the Review page, click <span class="ui">Pin exact spot</span> under any address.</p>
+            <p>Drag the red pin to the driveway or front door, or click the map to move it. Add a note if it helps, then <span class="ui">Save pin</span>.</p>
+            <p>From then on, that household's stop goes straight to the pin, every week.</p>
+          </div>
+          <figure><a href="walkthrough/12-house-pin.jpg"><img src="walkthrough/12-house-pin.jpg" alt="Pin exact spot window with a satellite map, a red pin, and a note for drivers." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+      </section>
+
+      <!-- ===================== 4. DRIVERS ===================== -->
+      <section class="part" id="drivers">
+        <h2>4. Print &amp; send</h2>
+        <p class="lede">Drivers get paper, a QR code, or a text with a link. They don't need to install anything.</p>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">1</span> Print, or copy links to text</h3>
+            <p>Click <span class="ui">Continue to print &amp; send</span>, then:</p>
+            <ul>
+              <li><span class="ui">Print driver sheets</span>: one route per page.</li>
+              <li><span class="ui">Copy link</span> next to a route, then paste it into a text to that driver.</li>
+              <li><span class="ui">Copy all links</span>: every route at once.</li>
+            </ul>
+            <p class="note">If you changed any buildings, you'll be reminded to <strong>download a backup</strong>. Do it! See <a href="#safe">section 5</a>.</p>
+          </div>
+          <figure><a href="walkthrough/13-send.jpg"><img src="walkthrough/13-send.jpg" alt="Print and send screen with Print driver sheets and Copy all links buttons, and a list of routes with Copy link buttons." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">2</span> What drivers see on paper</h3>
+            <p>Each route sheet has the route number, the driver, the stop and bag counts, a QR code, and a numbered list of stops with a checkbox for each.</p>
+            <p>Apartment stops show the unit <strong>and the building</strong> in big type. Stops in the same complex are grouped building by building, so drivers don't zig-zag.</p>
+            <p>To start, the driver scans the QR code with their phone camera. Google Maps opens with every stop in order, starting from wherever they are.</p>
+          </div>
+          <figure><a href="walkthrough/15-printed-apartments.jpg"><img src="walkthrough/15-printed-apartments.jpg" alt="Printed route sheet: QR code at top, then stops with Apt 212 and a black Bldg C label, grouped by building." loading="lazy" width="1224" height="1584" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">3</span> Long routes come in parts</h3>
+            <p>Google Maps can only hold about 10 stops in one link, so long routes get <strong>Part 1, Part 2, Part 3</strong>. When a driver finishes Part 1, they scan Part 2.</p>
+            <p>Several apartments in the same building count as one stop.</p>
+            <p class="tip">A driver who opens links in a phone web browser without the Google Maps app can only use 4 stops per link. For them, set <span class="ui">Print &amp; send → Settings → Stops per Google Maps link</span> to 4.</p>
+          </div>
+          <div class="pair">
+            <figure><a href="walkthrough/16-printed-long-route.jpg"><img src="walkthrough/16-printed-long-route.jpg" alt="Printed 28-stop route with three QR codes labeled Part 1, Part 2 and Part 3." loading="lazy" width="1224" height="1584" /></a><figcaption>A 28-stop route: three QR codes</figcaption></figure>
+            <figure><a href="walkthrough/14-printed-rural.jpg"><img src="walkthrough/14-printed-rural.jpg" alt="Printed rural route with one QR code and driver notes under addresses." loading="lazy" width="1224" height="1584" /></a><figcaption>A rural route with driver notes</figcaption></figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 5. SAFE ===================== -->
+      <section class="part" id="safe">
+        <h2>5. Keep your pins safe</h2>
+        <p class="lede">Building pins are saved in your browser on this computer, not online. A backup file protects them.</p>
+        <div class="step">
+          <div>
+            <h3><span class="num">1</span> Back up after changes</h3>
+            <p>Click the menu button (☰) at the top right, then <span class="ui">Download a backup</span>. Save the file to TABLE's shared drive.</p>
+            <p>On a new computer, or if the browser is ever cleared, use <span class="ui">Menu → Restore from a backup</span>.</p>
+            <p><span class="ui">Menu → Saved complexes &amp; pins</span> lets you edit or delete anything you've set up.</p>
+          </div>
+          <dl class="faq">
+            <dt>Does any family information get uploaded?</dt>
+            <dd>No. Names, phone numbers and unit numbers stay on your computer. Only a complex's street address is looked up on the map, once.</dd>
+            <dt>What if I skip “Needs attention”?</dt>
+            <dd>Nothing breaks. Those households go to the main address, like today.</dd>
+            <dt>Do drivers need an app?</dt>
+            <dd>No. The QR code or link opens Google Maps. Most drivers already have the Google Maps app.</dd>
+            <dt>A driver says the building was wrong.</dt>
+            <dd>Open <span class="ui">Menu → Saved complexes &amp; pins → Edit</span>, then drag that building's label to the right spot or fix the rule, and save.</dd>
+            <dt>Can other staff see my complexes?</dt>
+            <dd>Not yet. Send them your backup file and have them restore it. Shared setups are planned for later.</dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+
+    <footer><div>TABLE Route Sheets · Screenshots use made-up sample data. Map imagery: NC OneMap, USGS The National Map. Building outlines © OpenStreetMap contributors.</div></footer>
+  </body>
+</html>
