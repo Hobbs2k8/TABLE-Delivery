@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+# Never commit real family data
+*.real.csv
+*.real.xlsx
+real-data/
+.claude/

@@ -1,0 +1,60 @@
+Route,Stop Number,Driver,Household,Address,Apt,City,State,Zip,Phone,Bags,Notes,Latitude,Longitude
+1,1,Driver Ana,Sample Household 001,1200 Quail Hollow Rd,,Hillsborough,NC,27278,919-555-0102,1,,36.075001,-79.175792
+1,2,Driver Ana,Sample Household 002,1517 Old Mill Creek Rd,,Hillsborough,NC,27278,919-555-0103,2,,36.089106,-79.168706
+1,3,Driver Ana,Sample Household 003,1834 Persimmon Ridge Rd,,Hillsborough,NC,27278,919-555-0104,3,,36.102293,-79.159479
+1,4,Driver Ana,Sample Household 004,2151 Tobacco Barn Ln,,Hillsborough,NC,27278,919-555-0105,2,"Long gravel drive, blue mailbox",36.116429,-79.151155
+1,5,Driver Ana,Sample Household 005,2468 Cane Creek Church Rd,,Hillsborough,NC,27278,919-555-0106,2,,36.131168,-79.146580
+1,6,Driver Ana,Sample Household 006,2785 Fox Run Trl,,Hillsborough,NC,27278,919-555-0107,1,,36.142079,-79.133020
+1,7,Driver Ana,Sample Household 007,3102 Little River Farm Rd,,Hillsborough,NC,27278,919-555-0108,3,"Dog in yard, honk",36.153839,-79.126321
+1,8,Driver Ana,Sample Household 008,3419 Dairyland Bend Rd,,Hillsborough,NC,27278,919-555-0109,2,,36.167074,-79.120772
+2,1,Driver Ben,Sample Household 009,105 Laurel Ave,,Carrboro,NC,27510,919-555-0110,3,,35.911200,-79.073100
+2,2,Driver Ben,Sample Household 010,18 Hollow Oak Ct,,Carrboro,NC,27510,919-555-0111,3,,35.910100,-79.077500
+2,3,Driver Ben,Sample Household 011,400 Sycamore Ridge Ln,212,Carrboro,NC,27510,919-555-0112,2,,35.908450,-79.084150
+2,4,Driver Ben,Sample Household 012,400 Sycamore Ridge Ln,104,Carrboro,NC,27510,919-555-0113,2,,35.908450,-79.084150
+2,5,Driver Ben,Sample Household 013,400 Sycamore Ridge Ln,318,Carrboro,NC,27510,919-555-0114,3,,35.908450,-79.084150
+2,6,Driver Ben,Sample Household 014,400 Sycamore Ridge Ln,9C,Carrboro,NC,27510,919-555-0115,3,,35.908450,-79.084150
+2,7,Driver Ben,Sample Household 015,400 Sycamore Ridge Ln,101,Carrboro,NC,27510,919-555-0116,2,,35.908450,-79.084150
+2,8,Driver Ben,Sample Household 016,400 Sycamore Ridge Ln,405,Carrboro,NC,27510,919-555-0117,2,,35.908450,-79.084150
+2,9,Driver Ben,Sample Household 017,400 Sycamore Ridge Ln,226,Carrboro,NC,27510,919-555-0118,3,,35.908450,-79.084150
+2,10,Driver Ben,Sample Household 018,400 Sycamore Ridge Ln,117,Carrboro,NC,27510,919-555-0119,1,,35.908450,-79.084150
+2,11,Driver Ben,Sample Household 019,400 Sycamore Ridge Ln,301,Carrboro,NC,27510,919-555-0120,1,,35.908450,-79.084150
+2,12,Driver Ben,Sample Household 020,400 Sycamore Ridge Ln,,Carrboro,NC,27510,919-555-0121,1,,35.908450,-79.084150
+2,13,Driver Ben,Sample Household 021,400 Sycamore Ridge Ln,4B,Carrboro,NC,27510,919-555-0122,2,,35.908450,-79.084150
+2,14,Driver Ben,Sample Household 022,400 Sycamore Ridge Ln,122,Carrboro,NC,27510,919-555-0123,1,,35.908450,-79.084150
+2,15,Driver Ben,Sample Household 023,400 Sycamore Ridge Ln,310,Carrboro,NC,27510,919-555-0124,3,,35.908450,-79.084150
+2,16,Driver Ben,Sample Household 024,410 Sycamore Ridge Ln Bldg 4 Apt 402,,Carrboro,NC,27510,919-555-0125,2,,35.909050,-79.084950
+2,17,Driver Ben,Sample Household 025,410 Sycamore Ridge Ln,Apt 411,Carrboro,NC,27510,919-555-0126,3,,35.909050,-79.084950
+2,18,Driver Ben,Sample Household 026,77 Brookside Dr,,Carrboro,NC,27510,919-555-0127,3,,35.906100,-79.090200
+3,1,Driver Cam,Sample Household 027,100 Pine St,,Carrboro,NC,27510,919-555-0128,2,,35.891759,-79.086795
+3,2,Driver Cam,Sample Household 028,113 Weaver St,,Carrboro,NC,27510,919-555-0129,1,,35.905264,-79.082357
+3,3,Driver Cam,Sample Household 029,126 Greensboro St,,Carrboro,NC,27510,919-555-0130,2,,35.917269,-79.093354
+3,4,Driver Cam,Sample Household 030,139 Oak Ave,,Carrboro,NC,27510,919-555-0131,3,,35.900324,-79.075067
+3,5,Driver Cam,Sample Household 031,152 Main St,,Carrboro,NC,27510,919-555-0132,2,,35.905446,-79.090033
+3,6,Driver Cam,Sample Household 032,165 Lloyd St,,Carrboro,NC,27510,919-555-0133,2,,35.898508,-79.084066
+3,7,Driver Cam,Sample Household 033,178 Center St,,Carrboro,NC,27510,919-555-0134,2,,35.899977,-79.079050
+3,8,Driver Cam,Sample Household 034,191 Hillsborough Rd,,Carrboro,NC,27510,919-555-0135,2,,35.896997,-79.067805
+3,9,Driver Cam,Sample Household 035,204 Davie Rd,,Carrboro,NC,27510,919-555-0136,2,,35.915890,-79.075946
+3,10,Driver Cam,Sample Household 036,208 Shelton St,A,Carrboro,NC,27510,919-555-0137,2,,35.914200,-79.072100
+3,11,Driver Cam,Sample Household 037,208 Shelton St,B,Carrboro,NC,27510,919-555-0138,2,,35.914200,-79.072100
+3,12,Driver Cam,Sample Household 038,243 Shelton St,,Carrboro,NC,27510,919-555-0139,2,,35.910670,-79.066813
+3,13,Driver Cam,Sample Household 039,256 Pine St,,Carrboro,NC,27510,919-555-0140,2,,35.911247,-79.087466
+3,14,Driver Cam,Sample Household 040,269 Weaver St,,Carrboro,NC,27510,919-555-0141,2,,35.900518,-79.085082
+3,15,Driver Cam,Sample Household 041,400 Sycamore Ridge Ln,115,Carrboro,NC,27510,919-555-0142,3,,35.908450,-79.084150
+3,16,Driver Cam,Sample Household 042,400 Sycamore Ridge Ln,233,Carrboro,NC,27510,919-555-0143,3,,35.908450,-79.084150
+3,17,Driver Cam,Sample Household 043,400 Sycamore Ridge Ln,407,Carrboro,NC,27510,919-555-0144,1,,35.908450,-79.084150
+3,18,Driver Cam,Sample Household 044,321 Lloyd St,,Carrboro,NC,27510,919-555-0145,2,,35.914576,-79.092668
+3,19,Driver Cam,Sample Household 045,334 Center St,,Carrboro,NC,27510,919-555-0146,3,,35.894607,-79.092663
+3,20,Driver Cam,Sample Household 046,347 Hillsborough Rd,,Carrboro,NC,27510,919-555-0147,1,,35.896600,-79.076029
+3,21,Driver Cam,Sample Household 047,360 Davie Rd,,Carrboro,NC,27510,919-555-0148,1,,35.903713,-79.077213
+3,22,Driver Cam,Sample Household 048,373 Elm St,,Carrboro,NC,27510,919-555-0149,3,,35.917656,-79.068463
+3,23,Driver Cam,Sample Household 049,386 Short St,,Carrboro,NC,27510,919-555-0150,3,,35.916557,-79.067767
+3,24,Driver Cam,Sample Household 050,399 Shelton St,,Carrboro,NC,27510,919-555-0151,1,,35.898263,-79.094685
+3,25,Driver Cam,Sample Household 051,412 Pine St,,Carrboro,NC,27510,919-555-0152,2,,35.892281,-79.094952
+3,26,Driver Cam,Sample Household 052,425 Weaver St,,Carrboro,NC,27510,919-555-0153,2,,35.896941,-79.072766
+3,27,Driver Cam,Sample Household 053,438 Greensboro St,,Carrboro,NC,27510,919-555-0154,3,,35.910626,-79.087859
+3,28,Driver Cam,Sample Household 054,451 Oak Ave,,Carrboro,NC,27510,919-555-0155,3,,35.897055,-79.083782
+4,1,Driver Dee,Sample Household 055,12 Bolin Creek Way,,Chapel Hill,NC,27514,919-555-0156,1,,35.930100,-79.061200
+4,2,Driver Dee,Sample Household 056,77 Maple Court,1,Chapel Hill,NC,27514,919-555-0157,2,,35.932200,-79.058700
+4,3,Driver Dee,Sample Household 057,77 Maple Court,3,Chapel Hill,NC,27514,919-555-0158,1,,35.932200,-79.058700
+4,4,Driver Dee,Sample Household 058,77 Maple Court,6,Chapel Hill,NC,27514,919-555-0159,3,,35.932200,-79.058700
+4,5,Driver Dee,Sample Household 059,340 Ridgefield Rd,,Chapel Hill,NC,27514,919-555-0160,2,,35.935100,-79.054400

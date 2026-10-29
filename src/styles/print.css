@@ -1,0 +1,34 @@
+/* Paper driver sheets. Only #print-root is printed; one route starts per page. */
+@page { size: letter; margin: 0.45in; }
+
+@media print {
+  :root { --text: #000; --text-muted: #333; --border: #999; --bg: #fff; --surface: #fff; --bg-soft: #f2f2f2; color-scheme: light; }
+  body { background: #fff; font-size: 11pt; }
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block !important; }
+
+  .sheet { border: 0; box-shadow: none; padding: 0; border-radius: 0; break-after: page; }
+  .sheet:last-child { break-after: auto; }
+  .sheet-head { padding-bottom: 8pt; margin-bottom: 8pt; border-bottom: 2pt solid #000; }
+  .sheet-title { font-size: 26pt; }
+  .sheet-facts { font-size: 12pt; color: #000; }
+  .sheet-actions, .stop-tools, .stop-warn.screen-only, .no-print { display: none !important; }
+  .only-print { display: block; }
+
+  .qr-row { gap: 10pt; margin-bottom: 10pt; break-inside: avoid; }
+  .qr-card { width: 1.85in; padding: 6pt; border: 1pt solid #000; }
+  .qr-card svg { width: 1.6in; height: 1.6in; }
+  .qr-card a { text-decoration: none; color: #000; }
+  .qr-help { color: #000; font-size: 10pt; }
+
+  .stops thead { display: table-header-group; } /* header repeats on continuation pages */
+  .stops tr { break-inside: avoid; }
+  .stops td { padding: 6pt 5pt; }
+  .stops th { color: #000; border-bottom: 1.5pt solid #000; }
+  .apt { font-size: 12pt; background: #fff; border: 1.5pt solid #000; }
+  .bldg { background: #000; color: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .check { border: 1.5pt solid #000; }
+  .continued { display: block; }
+}
+
+#print-root { display: none; }
