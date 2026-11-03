@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectColumns, missingRequired, headerSignature, mappingFits, findHeaderRow, matrixToRows, rowsToStops } from '../src/lib/columns.js';
+import { detectColumns, missingRequired, headerSignature, mappingFits, findHeaderRow, matrixToRows, rowsToStops, dayInfo } from '../src/lib/columns.js';
 
 describe('detectColumns', () => {
   it('maps a Routific-style export', () => {
@@ -28,7 +28,8 @@ describe('detectColumns', () => {
   });
 
   it('reports missing required fields', () => {
-    expect(missingRequired(detectColumns(['Name', 'Phone']))).toEqual(['route', 'street']);
+    expect(missingRequired(detectColumns(['Name', 'Phone']))).toEqual(['street']);
+    expect(missingRequired(detectColumns(['Address']))).toEqual([]); // routes are optional now
   });
 });
 
@@ -77,24 +78,91 @@ describe('rowsToStops', () => {
     expect(stops[1]).toMatchObject({ unit: '215', bags: 2 });
   });
 
-  it('skips rows with no route or address and says why', () => {
+  it('skips rows with no address, and fills blank route cells from the row above', () => {
     const { stops, skipped } = rowsToStops(
       [
-        { Route: '', Address: '1 Main St' },
-        { Route: '1', Address: '' },
+        { Route: '4', Address: '1 Main St' },
+        { Route: '', Address: '2 Main St' }, // merged cell: still route 4
+        { Route: '4', Address: '' },
         { Route: '', Address: '' },
       ],
       mapping,
     );
-    expect(stops).toHaveLength(0);
-    expect(skipped).toEqual([
-      { rowNumber: 2, reason: 'no route number' },
-      { rowNumber: 3, reason: 'no street address' },
-    ]);
+    expect(stops.map((s) => [s.route, s.street])).toEqual([['4', '1 Main St'], ['4', '2 Main St']]);
+    expect(skipped).toEqual([{ rowNumber: 4, reason: 'no street address' }]);
+  });
+
+  it('leaves the route empty when the file has none, so the app can make routes', () => {
+    const r = rowsToStops([{ Address: '1 Main St' }, { Address: '2 Main St' }], { street: 'Address' });
+    expect(r.hasRoutes).toBe(false);
+    expect(r.stops.map((s) => s.route)).toEqual(['', '']);
+    expect(r.stops[0].bags).toBeNull(); // one row per household and no bags column: unknown
   });
 
   it('parses full addresses when there are no city or ZIP columns', () => {
     const { stops } = rowsToStops([{ R: '1', A: '400 Sycamore Ln Apt 3, Chapel Hill, NC 27514' }], { route: 'R', street: 'A' });
     expect(stops[0]).toMatchObject({ street: '400 Sycamore Ln', unit: '3', city: 'Chapel Hill', state: 'NC', zip: '27514' });
+  });
+});
+
+describe("TABLE's Current Numbers workbook (MASTER sheet, one row per child)", () => {
+  const headers = ['Food Location: Delivery Locations Name', 'Food Location: Drop-off Day', 'Stop #', 'Program', 'Mailing Address', 'Dup Address', 'Allergies', 'NeedsLabel', 'PrefLabel', 'Household: Primary Language Spoken at Home', 'Delivery Notes'];
+
+  it('recognizes its columns', () => {
+    expect(detectColumns(headers)).toMatchObject({
+      route: 'Food Location: Delivery Locations Name',
+      day: 'Food Location: Drop-off Day',
+      stop: 'Stop #',
+      program: 'Program',
+      street: 'Mailing Address', // not "Dup Address"
+      special: 'NeedsLabel',
+      diet: 'PrefLabel',
+      language: 'Household: Primary Language Spoken at Home',
+      notes: 'Delivery Notes',
+      name: null, // the language column must not become the household name
+      bags: null,
+    });
+  });
+
+  it('turns child rows into households with bags, diet and language', () => {
+    const row = (route, day, stop, addr, extra = {}) => ({
+      'Food Location: Delivery Locations Name': route, 'Food Location: Drop-off Day': day, 'Stop #': stop, Program: 'TABLE @ Home',
+      'Mailing Address': addr, NeedsLabel: '', PrefLabel: '', 'Household: Primary Language Spoken at Home': 'Spanish', 'Delivery Notes': 'Knock twice', ...extra,
+    });
+    const rows = [
+      row('Route 01a-Efland', '01-Tues', '3', '820 Eno Mill Rd, 1A, Hillsborough'),
+      row('Route 01a-Efland', '01-Tues', '3.1', '820 Eno Mill Rd, 1A, Hillsborough', { NeedsLabel: 'X', PrefLabel: '1. Nut allergy;' }),
+      row('Route 01a-Efland', '01-Tues', '3.2', '820 Eno Mill Rd, 1A, Hillsborough'),
+      row('Route 01a-Efland', '01-Tues', '1', '112 N Churton St, Hillsborough'),
+      row('TABLE Pickup', '01-Tues', '1', '9 Pickup Ln, Carrboro'),
+      row('Route 01a-Efland', '03-Thurs', '1', '112 N Churton St, Hillsborough'), // same route name, another day
+    ];
+    const m = detectColumns(headers);
+    const r = rowsToStops(rows, m);
+    expect(r.pickups).toBe(1);
+    expect(r.hasDays).toBe(true);
+    expect(r.stops).toHaveLength(3);
+    const apt = r.stops.find((s) => s.unit === '1A');
+    expect(apt).toMatchObject({ route: '01a-Efland', day: 'Tuesday', street: '820 Eno Mill Rd', city: 'Hillsborough', bags: 3, special: 1, dietNotes: ['1. Nut allergy;'], language: 'Spanish', notes: 'Knock twice', order: 3 });
+    expect(r.stops.filter((s) => s.street === '112 N Churton St').map((s) => s.day)).toEqual(['Tuesday', 'Thursday']);
+  });
+
+  it('skips Marketplace pickup households when there are no routes', () => {
+    const r = rowsToStops(
+      [
+        { A: '1 Main St, Carrboro', P: 'TABLE @ Home' },
+        { A: '2 Main St, Carrboro', P: 'Marketplace Pick Up' },
+        { A: '2 Main St, Carrboro', P: '' }, // sibling row without the flag: same household, still skipped
+      ],
+      { street: 'A', program: 'P' },
+    );
+    expect(r.stops.map((s) => s.street)).toEqual(['1 Main St']);
+    expect(r.pickups).toBe(1);
+  });
+
+  it('reads delivery days', () => {
+    expect(dayInfo('01-Tues')).toEqual({ label: 'Tuesday', order: 1 });
+    expect(dayInfo('Thursday')).toEqual({ label: 'Thursday', order: 3 });
+    expect(dayInfo('')).toEqual({ label: '', order: 99 });
   });
 });

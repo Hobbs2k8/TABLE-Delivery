@@ -3,11 +3,34 @@
 import { detectComplexes } from './complexes.js';
 
 /**
- * Returns [{ kind, title, detail, households, target }] — each item links to its fix.
- * kind: 'setup-complex' | 'unmatched-units' | 'skipped-rows'
+ * Returns [{ kind, title, detail, households, ... }]; each item links to its fix.
+ * kind: 'not-routed' | 'over-limit' | 'setup-complex' | 'unmatched-units' | 'conflicts' | 'skipped-rows'
  */
-export function findIssues({ stops, complexes, pins = [], skipped = [] }) {
+export function findIssues({ stops, complexes, pins = [], skipped = [], routes = [], waiting = [], rules = null }) {
   const issues = [];
+
+  if (waiting.length) {
+    const bags = waiting.reduce((n, s) => n + (s.bags ?? 1), 0);
+    issues.push({
+      kind: 'not-routed',
+      title: `${waiting.length} ${waiting.length === 1 ? 'household is' : 'households are'} not on a route yet`,
+      detail: `${bags} ${bags === 1 ? 'bag' : 'bags'}. Make routes to give every household a driver.`,
+      households: waiting.length,
+    });
+  }
+
+  const over = rules ? routes.filter((r) => r.overBags || r.overTime) : [];
+  if (over.length) {
+    issues.push({
+      kind: 'over-limit',
+      title: `${over.length} ${over.length === 1 ? 'route is' : 'routes are'} over the limits`,
+      detail: over
+        .map((r) => `${r.title}: ${[r.overBags && `${r.bags} bags`, r.overTime && 'over 2 hours'].filter(Boolean).join(', ')}`)
+        .join(' · '),
+      households: over.reduce((n, r) => n + r.households, 0),
+      routeId: over[0].id,
+    });
+  }
 
   const notSetUp = detectComplexes(stops, complexes, pins);
   if (notSetUp.length) {

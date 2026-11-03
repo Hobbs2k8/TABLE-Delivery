@@ -1,28 +1,39 @@
 // Step 3: print driver sheets and copy links for texting.
 
-import { state, recompute, totals } from '../state.js';
+import { state, recompute, totals, visibleRoutes, routeDays } from '../state.js';
 import { MAX_STOPS_PER_LINK } from '../lib/mapsLinks.js';
 import { getSetting, setSetting, list } from '../store/db.js';
 import { downloadBackup } from '../store/backup.js';
 import { html, raw, mount, icons, plural, copyText, toast } from './dom.js';
 import { renderSheet, routeMessage, prepareQrs } from './sheet.js';
 
+/** Prints the routes for the chosen delivery day (or all of them). */
 export async function printAll() {
+  const routes = visibleRoutes();
   toast('Getting driver sheets ready…');
-  await prepareQrs(state.routes);
-  mount(document.getElementById('print-root'), state.routes.map((r) => renderSheet(r, { mode: 'print' })));
+  await prepareQrs(routes);
+  mount(document.getElementById('print-root'), routes.map((r) => renderSheet(r, { mode: 'print' })));
   // Give the browser a moment to lay out the SVGs before the print dialog.
   requestAnimationFrame(() => setTimeout(() => window.print(), 50));
 }
 
 export function renderSend(main, app) {
   const t = totals();
+  const routes = visibleRoutes();
+  const days = routeDays();
+  const which = state.day === 'all' ? '' : `${state.day}'s `;
   mount(
     main,
     html`
       <div class="narrow">
         <h1 class="page-title">Print &amp; send</h1>
-        <p class="page-sub">${plural(t.routes, 'route')} ready. Print one sheet per route, or copy links to text to drivers.</p>
+        <p class="page-sub">${plural(t.routes, 'route')} ready${state.day === 'all' ? '' : ` for ${state.day}`}. Print one sheet per route, or copy links to text to drivers.</p>
+        ${days.length > 1
+          ? html`<div class="day-chips" role="group" aria-label="Delivery day">
+              <button class="day-chip" data-day="all" aria-pressed="${state.day === 'all'}">All days</button>
+              ${days.map((d) => html`<button class="day-chip" data-day="${d.label}" aria-pressed="${state.day === d.label}">${d.label} <span class="muted">${d.routes}</span></button>`)}
+            </div>`
+          : ''}
 
         ${t.householdsAtEntrance
           ? html`<div class="attention" style="display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap">
@@ -32,15 +43,15 @@ export function renderSend(main, app) {
           : ''}
 
         <div class="send-actions">
-          <button class="btn btn-primary" data-print>${raw(icons.print)} Print driver sheets</button>
+          <button class="btn btn-primary" data-print>${raw(icons.print)} Print ${which}driver sheets</button>
           <button class="btn btn-outline" data-copy-all>${raw(icons.copy)} Copy all links</button>
         </div>
 
         <ul class="send-list" aria-label="Routes">
-          ${state.routes.map(
+          ${routes.map(
             (r) => html`<li>
               <div>
-                <strong>Route ${r.id}</strong>${r.driver ? html` <span class="muted">· ${r.driver}</span>` : ''}
+                <strong>${r.title}</strong>${[state.day === 'all' && r.day, r.driver].filter(Boolean).map((x) => html` <span class="muted">· ${x}</span>`)}
                 <div class="send-links small">
                   ${r.links.map((l) => html`<a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>`)}
                 </div>
@@ -73,7 +84,14 @@ export function renderSend(main, app) {
 
   main.querySelector('[data-print]').addEventListener('click', printAll);
   main.querySelector('[data-review]')?.addEventListener('click', () => app.go('review'));
-  main.querySelector('[data-copy-all]').addEventListener('click', () => copyText(state.routes.map(routeMessage).join('\n\n'), `Copied links for ${plural(state.routes.length, 'route')}.`));
+  main.querySelector('[data-copy-all]').addEventListener('click', () => copyText(routes.map(routeMessage).join('\n\n'), `Copied links for ${plural(routes.length, 'route')}.`));
+  main.querySelectorAll('[data-day]').forEach((b) =>
+    b.addEventListener('click', () => {
+      state.day = b.dataset.day;
+      app.render();
+      main.querySelector(`[data-day="${CSS.escape(b.dataset.day)}"]`)?.focus();
+    }),
+  );
   main.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(routeMessage(state.routes.find((r) => r.id === b.dataset.copy)))));
   main.querySelector('#per-link').addEventListener('change', async (e) => {
     const n = Math.max(1, Math.min(MAX_STOPS_PER_LINK, Math.round(Number(e.target.value)) || MAX_STOPS_PER_LINK));
@@ -87,7 +105,7 @@ export function renderSend(main, app) {
 
   return {
     back: { label: 'Back', onClick: () => app.go('review') },
-    next: { label: 'Print driver sheets', icon: icons.print, onClick: printAll },
+    next: { label: `Print ${which}driver sheets`, icon: icons.print, onClick: printAll },
   };
 }
 

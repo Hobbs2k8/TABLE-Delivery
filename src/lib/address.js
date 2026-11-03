@@ -64,18 +64,60 @@ export function splitUnit(line) {
   return { street, unit, building };
 }
 
+// TABLE's workbook writes the unit as its own middle segment:
+// "820 Eno Mill Rd, 1A, Hillsborough". A short letter/number token (or
+// "upstairs", "2nd floor"...) between the street and the town is the unit.
+// (Pattern from monocoder77/table-route-packets.)
+const MIDDLE_UNIT_RE =
+  /^#?\s*(?:[A-Za-z]{0,2}-?\d{1,5}(?:-?[A-Za-z]|-\d{1,4})?|[A-Za-z](?:-?\d{1,4})?|upstairs|downstairs|upper|lower|rear|front|back|basement|(?:\d+(?:st|nd|rd|th)|first|second|third)\s+fl(?:oor)?|fl(?:oor)?\s*\d+)$/i;
+
+const STATE_ZIP_RE = /^(?:([A-Za-z]{2})\.?)?\s*(\d{5})?(?:-\d{4})?$/;
+const CITY_STATE_ZIP_RE = /^(.*?)\s+([A-Za-z]{2})\.?\s+(\d{5})(?:-\d{4})?$/;
+
 /**
- * Split "400 Sycamore Ln, Chapel Hill, NC 27514" into parts.
+ * Split a one-cell address into parts. Handles:
+ *   "400 Sycamore Ln, Chapel Hill, NC 27514"
+ *   "400 Sycamore Ln, Chapel Hill NC 27514"
+ *   "112 N Churton St, Hillsborough"          (TABLE's export: no state or ZIP)
+ *   "820 Eno Mill Rd, 1A, Hillsborough"       (unit as the middle segment)
  * Only used when the file has no separate city / ZIP columns.
  */
 export function parseFullAddress(text) {
   const s = String(text ?? '').trim().replace(/,?\s*(USA|United States)$/i, '');
-  const m = s.match(/^(.*?),\s*([^,]+?),\s*([A-Za-z]{2})\.?\s*(\d{5})?(?:-\d{4})?$/);
-  if (m) return { street: m[1].trim(), city: m[2].trim(), state: m[3].toUpperCase(), zip: m[4] || '' };
-  const m2 = s.match(/^(.*?),\s*([^,]+?)\s+([A-Za-z]{2})\.?\s+(\d{5})(?:-\d{4})?$/);
-  if (m2) return { street: m2[1].trim(), city: m2[2].trim(), state: m2[3].toUpperCase(), zip: m2[4] };
-  return { street: s, city: '', state: '', zip: '' };
+  const parts = s.split(',').map((p) => p.trim()).filter(Boolean);
+  const out = { street: parts[0] || s, unit: '', city: '', state: '', zip: '' };
+  const rest = parts.slice(1);
+  if (!rest.length) return out;
+
+  // Peel the state / ZIP off the end.
+  const last = rest[rest.length - 1];
+  const sz = last.match(STATE_ZIP_RE);
+  const csz = last.match(CITY_STATE_ZIP_RE);
+  if (sz && (sz[2] || (sz[1] && rest.length >= 2))) {
+    out.state = (sz[1] || '').toUpperCase();
+    out.zip = sz[2] || '';
+    rest.pop();
+  } else if (csz) {
+    out.city = csz[1].trim();
+    out.state = csz[2].toUpperCase();
+    out.zip = csz[3];
+    rest.pop();
+  }
+  if (!out.city && rest.length) out.city = rest.pop();
+
+  // Anything left between street and town: a unit, or more street text.
+  for (const middle of rest) {
+    const worded = ` ${middle}`.match(UNIT_RE); // "Apt 12", "#4B"
+    if (!out.unit && MIDDLE_UNIT_RE.test(middle)) out.unit = normalizeUnit(middle);
+    else if (!out.unit && worded) out.unit = normalizeUnit(worded[1]);
+    else out.street += `, ${middle}`;
+  }
+  return out;
 }
+
+// TABLE's export carries no state; every stop is in North Carolina. Added to
+// Maps links and map lookups so "Hillsborough" can't land in another state.
+export const DEFAULT_STATE = 'NC';
 
 /** "400 sycamore lane." -> "400 SYCAMORE LN" */
 export function normalizeStreet(street) {
@@ -124,7 +166,7 @@ export function houseNumber(street) {
 
 /** One-line address for display and for Maps links (never includes unit). */
 export function formatAddress({ street, city, state, zip }) {
-  const tail = [state, zip].filter(Boolean).join(' ');
+  const tail = [state || (zip ? '' : DEFAULT_STATE), zip].filter(Boolean).join(' ');
   return [street, city, tail].filter(Boolean).join(', ');
 }
 

@@ -3,6 +3,7 @@
 
 import QRCode from 'qrcode';
 import { html, raw, icons, plural } from './dom.js';
+import { formatMinutes } from '../lib/makeRoutes.js';
 
 const qrCache = new Map();
 
@@ -20,7 +21,8 @@ export async function prepareQrs(routes) {
 
 /** Text for texting a driver. */
 export function routeMessage(route) {
-  const lines = [`Route ${route.id}${route.driver ? ` (${route.driver})` : ''}: ${plural(route.households, 'stop')}, ${plural(route.bags, 'bag')}`];
+  const who = [route.day, route.driver].filter(Boolean).join(', ');
+  const lines = [`${route.title}${who ? ` (${who})` : ''}: ${plural(route.households, 'stop')}${route.hasBags ? `, ${plural(route.bags, 'bag')}` : ''}`];
   for (const l of route.links) lines.push(`${l.label}: ${l.url}`);
   return lines.join('\n');
 }
@@ -54,6 +56,9 @@ function warning(s) {
 }
 
 export function renderSheet(route, { mode = 'screen' } = {}) {
+  // Only show columns the file has.
+  const hasName = route.stops.some((s) => s.name || s.language);
+  const hasPhone = route.stops.some((s) => s.phone);
   let prevBuilding = null;
   const rows = route.stops.map((s) => {
     const b = s.place.buildingId || null;
@@ -67,12 +72,13 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
           <div class="addr">${s.street}</div>
           <div class="muted small">${[s.city, s.zip].filter(Boolean).join(' ')}</div>
           ${notes.map((n) => html`<p class="stop-note">${n}</p>`)}
+          ${s.dietNotes?.length ? html`<p class="stop-diet">Special diet: ${s.dietNotes.join(' ')}</p>` : ''}
           ${mode === 'screen' ? warning(s) : ''}
         </td>
         <td>${aptCell(s)}</td>
-        <td>${s.name}</td>
-        <td class="small" style="white-space:nowrap">${s.phone}</td>
-        <td class="col-bags">${s.bags ?? ''}</td>
+        ${hasName ? html`<td>${s.name}${s.language ? html`<div class="lang">${s.language}</div>` : ''}</td>` : ''}
+        ${hasPhone ? html`<td class="small" style="white-space:nowrap">${s.phone}</td>` : ''}
+        <td class="col-bags">${s.bags ?? ''}${s.special ? html`<div class="special">${s.special} special</div>` : ''}</td>
         <td class="col-check"><span class="check" aria-label="Delivered checkbox"></span></td>
       </tr>`;
   });
@@ -86,14 +92,16 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
   );
 
   return html`
-    <article class="sheet" aria-label="Route ${route.id}">
+    <article class="sheet" aria-label="${route.title}">
       <div class="sheet-head">
         <div>
-          <div class="sheet-title">Route ${route.id}</div>
+          <div class="sheet-title">${route.title}</div>
           <div class="sheet-facts">
+            ${route.day ? html`<span><strong>${route.day}</strong></span>` : ''}
             <span>Driver: <strong>${route.driver || '________________'}</strong></span>
             <span><strong>${route.households}</strong> stops</span>
-            ${route.hasBags ? html`<span><strong>${route.bags}</strong> bags</span>` : ''}
+            ${route.hasBags ? html`<span><strong>${route.bags}</strong> bags${route.special ? html` (<strong>${route.bags - route.special}</strong> regular, <strong>${route.special}</strong> special diet)` : ''}</span>` : ''}
+            ${route.minutes != null ? html`<span>about <strong>${formatMinutes(route.minutes)}</strong></span>` : ''}
           </div>
         </div>
         ${mode === 'screen'
@@ -108,7 +116,7 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
         <p class="qr-help">Scan with your phone camera. It opens Google Maps with your stops in order. ${route.links.length > 1 ? 'When you finish one part, scan the next.' : ''} Apartment stops go straight to the right building.</p>
       </div>
       <table class="stops">
-        <thead><tr><th>#</th><th>Address</th><th>Apt / Building</th><th>Household</th><th>Phone</th><th class="col-bags">Bags</th><th class="col-check">✓</th></tr></thead>
+        <thead><tr><th>#</th><th>Address</th><th>Apt / Building</th>${hasName ? raw(`<th>${route.stops.some((s) => s.name) ? 'Household' : 'Language'}</th>`) : ''}${hasPhone ? raw('<th>Phone</th>') : ''}<th class="col-bags">Bags</th><th class="col-check">✓</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </article>`;

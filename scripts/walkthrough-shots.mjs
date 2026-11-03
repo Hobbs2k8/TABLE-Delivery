@@ -62,7 +62,7 @@ await page.evaluate(
 
 // 2. Upload
 await shot('02-upload');
-await page.click('#sample');
+await page.$eval('#sample-routific', (b) => b.click()); // may sit under the fixed footer
 await page.waitForSelector('select[data-field]');
 await shot('03-columns');
 
@@ -145,7 +145,6 @@ await page.waitForFunction(() => document.querySelectorAll('#print-root .qr-card
 await page.emulateMediaType('print');
 await page.setViewport({ width: 816, height: 1056, deviceScaleFactor: 1.5 });
 await page.evaluate(() => window.scrollTo(0, 0));
-await shot('14-printed-rural');
 await page.evaluate(() => {
   const s = document.querySelectorAll('#print-root .sheet')[1];
   window.scrollTo(0, s.getBoundingClientRect().top + window.scrollY);
@@ -156,5 +155,37 @@ await page.evaluate(() => {
   window.scrollTo(0, s.getBoundingClientRect().top + window.scrollY);
 });
 await shot('16-printed-long-route');
+
+// 9. TABLE's own workbook: no routes yet, so the app makes them
+await page.setViewport({ width: 1280, height: 820, deviceScaleFactor: 1.5 });
+await page.emulateMediaType('screen');
+await page.goto(BASE, { waitUntil: 'networkidle0' });
+await page.$eval('#sample', (b) => b.click());
+await page.waitForSelector('select[data-field]');
+await shot('17-table-columns');
+await page.click('[data-next]');
+await page.waitForSelector('#make-routes');
+await page.evaluate(() => window.scrollTo(0, 0));
+await shot('18-make-routes');
+await page.click('#make-routes [data-make]');
+await page.waitForSelector('.route-item');
+await page.waitForSelector('.toast', { hidden: true, timeout: 8000 }).catch(() => {});
+await page.evaluate(() => {
+  document.querySelector('.day-chips').scrollIntoView({ block: 'start' });
+  window.scrollBy(0, -100);
+});
+await page.waitForSelector('.qr-card svg');
+await shot('19-routes-made');
+
+// 10. A printed sheet with special-diet bags and languages
+await page.evaluate(() => (window.print = () => {}));
+await page.click('[data-next]');
+await page.waitForSelector('[data-print]');
+await page.click('[data-print]');
+await page.waitForFunction(() => document.querySelectorAll('#print-root .sheet').length > 0 && document.querySelectorAll('#print-root .qr-card svg').length > 0);
+await page.emulateMediaType('print');
+await page.setViewport({ width: 816, height: 1056, deviceScaleFactor: 1.5 });
+await page.evaluate(() => window.scrollTo(0, 0));
+await shot('20-printed-table-route');
 
 await browser.close();

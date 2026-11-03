@@ -4,7 +4,7 @@ For TABLE staff. Print this page and keep it by the computer.
 
 ## Every week
 
-1. **Export the week's file** the way you do now (Routific export, or the Monday spreadsheet).
+1. **Get the week's file**: TABLE's *Current Numbers* workbook as it is, or a Routific export.
 2. **Open the Route Sheets app** (bookmark it in the browser you always use; your building pins live in that browser).
 3. **Drag the file onto the page**, or click **Choose a file**.
    - If the columns are the same as last week, you go straight to Review.
@@ -12,8 +12,10 @@ For TABLE staff. Print this page and keep it by the computer.
 4. **Look at the top of the Review page.**
    - Green "Everything is ready": nothing to do. Go to step 5.
    - Yellow "Needs attention": click the button next to each item. See "When something needs attention" below.
-5. Click **Continue to print & send**.
-6. Click **Print driver sheets**. Each route prints on its own page(s).
+   - **No routes in the file?** The **Make routes** card is at the top. Click **Make routes**. Every route starts at TABLE, carries at most 30 bags and takes under 2 hours. Change the limits or delivery days under **Route rules**.
+   - If some households "have no spot on the map yet", pin them by hand, or click **Find these on the map…** (only street and town are sent; check with TABLE first).
+5. To work one day at a time, click **Tuesday**, **Wednesday** or **Thursday** above the routes. Then click **Continue to print & send**.
+6. Click **Print driver sheets** (or **Print Tuesday's driver sheets** if you picked a day). Each route prints on its own page(s), with special-diet bags, diet notes and language.
 7. To text a driver, click **Copy link** next to their route and paste it into the text message. **Copy all links** copies every route at once.
 8. If you see "You changed … since your last backup", click **Download backup** and save the file to the shared drive.
 
@@ -38,7 +40,9 @@ If the complex has more than one street address (402, 404 Sycamore…), tick the
 
 **"… new units have no building"**: a family moved into a unit your rules don't cover. Click **Add units to buildings**, click the orange unit, pick its building, then **Save complex**. Until you do, that family's stop goes to the complex's main address.
 
-**"… rows were left out"**: those rows had no route number or no address. Fix them in Salesforce/Routific if needed.
+**"… routes are over the limits"**: a route has more than 30 bags or would take more than 2 hours. Click **Show route** to see it.
+
+**"… rows were left out"**: those rows had no address. Fix them in Salesforce/Routific if needed. (Pickup families are always left out on purpose.)
 
 **Hard-to-find house?** On the Review page, click **Pin exact spot** under the address, click the driveway on the map, then **Save pin**.
 
