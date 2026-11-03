@@ -93,16 +93,17 @@
 
       <ol class="toc">
         <li><a href="#weekly"><strong>1. Every Monday</strong><span>Upload the file and check the routes</span></a></li>
-        <li><a href="#apartments"><strong>2. Apartment complexes</strong><span>Set up buildings once, use every week</span></a></li>
-        <li><a href="#houses"><strong>3. Hard-to-find houses</strong><span>Pin the exact driveway</span></a></li>
-        <li><a href="#drivers"><strong>4. Print &amp; send</strong><span>What drivers get</span></a></li>
-        <li><a href="#safe"><strong>5. Keep your pins safe</strong><span>Backups and common questions</span></a></li>
+        <li><a href="#making"><strong>2. Making routes</strong><span>When the file has no routes yet</span></a></li>
+        <li><a href="#apartments"><strong>3. Apartment complexes</strong><span>Set up buildings once, use every week</span></a></li>
+        <li><a href="#houses"><strong>4. Hard-to-find houses</strong><span>Pin the exact driveway</span></a></li>
+        <li><a href="#drivers"><strong>5. Print &amp; send</strong><span>What drivers get</span></a></li>
+        <li><a href="#safe"><strong>6. Keep your pins safe</strong><span>Backups and common questions</span></a></li>
       </ol>
 
       <!-- ===================== 1. WEEKLY ===================== -->
       <section class="part" id="weekly">
         <h2>1. Every Monday</h2>
-        <p class="lede">Export the week's file the way you already do (the Routific export or the Monday spreadsheet), then open the app.</p>
+        <p class="lede">Use TABLE's <em>Current Numbers</em> workbook as it is, or a Routific export. Then open the app.</p>
 
         <div class="step">
           <div>
@@ -117,7 +118,8 @@
           <div>
             <h3><span class="num">2</span> Upload the file</h3>
             <p>Drag the file onto the page, or click <span class="ui">Choose a file</span>. Excel (.xlsx) and CSV both work.</p>
-            <p>Family names, phone numbers and apartment numbers never leave your computer.</p>
+            <p>TABLE's workbook has one row per child. The app groups them into households: one stop each, one bag per child, with special-diet bags, diet notes and language. “TABLE Pickup” and “Marketplace Pick Up” families are left out.</p>
+            <p>Family names, phone numbers, apartment numbers, diet and health notes never leave your computer.</p>
           </div>
           <figure><a href="walkthrough/02-upload.jpg"><img src="walkthrough/02-upload.jpg" alt="Upload screen with a large drop area and a Choose a file button." loading="lazy" width="1920" height="1230" /></a></figure>
         </div>
@@ -126,7 +128,7 @@
           <div>
             <h3><span class="num">3</span> Check the columns (first time only)</h3>
             <p>The app guesses which column is which and shows an example from your file next to each one. If a guess is wrong, pick the right column from the list.</p>
-            <p>Only <strong>Route number</strong> and <strong>Street address</strong> are required. Click <span class="ui">Use these columns</span>.</p>
+            <p>Only <strong>Street address</strong> is required. No route column? The app can make the routes (next section). Click <span class="ui">Use these columns</span>.</p>
             <p class="tip">Next week, if the file has the same columns, this step is skipped.</p>
           </div>
           <figure><a href="walkthrough/03-columns.jpg"><img src="walkthrough/03-columns.jpg" alt="Column check screen matching Route, Address, Apt and Household to the file's columns." loading="lazy" width="1920" height="1230" /></a></figure>
@@ -138,7 +140,9 @@
             <p>Everything that needs fixing is listed in one place at the top, with a button that takes you straight to the fix.</p>
             <ul>
               <li><strong>Green “Everything is ready”</strong>: nothing to do. Skip to <a href="#drivers">Print &amp; send</a>.</li>
-              <li><strong>“Complexes need building locations”</strong>: a new apartment complex. See <a href="#apartments">section 2</a>.</li>
+              <li><strong>“Households are not on a route yet”</strong>: the file has no routes. See <a href="#making">section 2</a>.</li>
+              <li><strong>“Routes are over the limits”</strong>: a route has more than 30 bags or takes more than 2 hours.</li>
+              <li><strong>“Complexes need building locations”</strong>: a new apartment complex. See <a href="#apartments">section 3</a>.</li>
               <li><strong>“New units have no building”</strong>: a family moved into a unit your rules don't cover yet.</li>
             </ul>
             <p>Below that, routes are listed on the left. Click one to see its driver sheet on the right.</p>
@@ -148,9 +152,42 @@
         </div>
       </section>
 
-      <!-- ===================== 2. APARTMENTS ===================== -->
+      <!-- ===================== 2. MAKING ROUTES ===================== -->
+      <section class="part" id="making">
+        <h2>2. Making routes</h2>
+        <p class="lede">When the weekly file has no routes, the app makes them. Every route starts at TABLE, carries at most 30 bags, takes under 2 hours, and ends at the last house with no drive back. It uses as few routes as possible, since every route is a volunteer.</p>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">1</span> TABLE's workbook, read as it is</h3>
+            <p>The app finds the address, special-diet flag (<em>NeedsLabel</em>), diet notes (<em>PrefLabel</em>), language, program and delivery notes. It also uses the route, delivery day and stop number when the file has them.</p>
+          </div>
+          <figure><a href="walkthrough/17-table-columns.jpg"><img src="walkthrough/17-table-columns.jpg" alt="Column check for TABLE's workbook: Mailing Address matched as the street address." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">2</span> Click “Make routes”</h3>
+            <p>The card at the top of Review says how many households and bags are waiting. Open <span class="ui">Route rules</span> to change the limits, or to pick which days to spread routes over (Tuesday, Wednesday and Thursday by default). If the file gives each family a delivery day, routes are made within each day.</p>
+            <p class="note">Each household needs a spot on the map. If the file has no latitude/longitude, the card offers <span class="ui">Find these on the map…</span>. It only runs if you click it and confirm, and only street and town are sent. Check with TABLE before using it for real families, or pin households by hand.</p>
+          </div>
+          <figure><a href="walkthrough/18-make-routes.jpg"><img src="walkthrough/18-make-routes.jpg" alt="Review screen with a Make routes card: 65 households can be grouped into routes." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+
+        <div class="step">
+          <div>
+            <h3><span class="num">3</span> Check the routes, one day at a time</h3>
+            <p>Routes are named by day, number and town (“Tue 01 · Chapel Hill”) and numbered clockwise around TABLE. Each one shows its stops, bags and estimated time.</p>
+            <p>Use the day buttons at the top to see, and later print, one day's routes.</p>
+            <p class="tip">Times are estimates from distance, not live traffic. Compare the first few weeks with what drivers report.</p>
+          </div>
+          <figure><a href="walkthrough/19-routes-made.jpg"><img src="walkthrough/19-routes-made.jpg" alt="Routes made: day buttons for Tuesday, Wednesday and Thursday, a route list with bags and times, and a route sheet." loading="lazy" width="1920" height="1230" /></a></figure>
+        </div>
+      </section>
+
+      <!-- ===================== 3. APARTMENTS ===================== -->
       <section class="part" id="apartments">
-        <h2>2. Setting up an apartment complex</h2>
+        <h2>3. Setting up an apartment complex</h2>
         <p class="lede">Usually every household in a complex lands on the leasing office, and drivers hunt for the right building. Set a complex up once, and every week after, each family's stop goes straight to their building.</p>
 
         <div class="step">
@@ -225,7 +262,7 @@
 
       <!-- ===================== 3. HOUSES ===================== -->
       <section class="part" id="houses">
-        <h2>3. Hard-to-find houses</h2>
+        <h2>4. Hard-to-find houses</h2>
         <p class="lede">For long rural driveways or houses Google gets wrong.</p>
         <div class="step">
           <div>
@@ -240,7 +277,7 @@
 
       <!-- ===================== 4. DRIVERS ===================== -->
       <section class="part" id="drivers">
-        <h2>4. Print &amp; send</h2>
+        <h2>5. Print &amp; send</h2>
         <p class="lede">Drivers get paper, a QR code, or a text with a link. They don't need to install anything.</p>
 
         <div class="step">
@@ -252,7 +289,8 @@
               <li><span class="ui">Copy link</span> next to a route, then paste it into a text to that driver.</li>
               <li><span class="ui">Copy all links</span>: every route at once.</li>
             </ul>
-            <p class="note">If you changed any buildings, you'll be reminded to <strong>download a backup</strong>. Do it! See <a href="#safe">section 5</a>.</p>
+            <p>Pick a day at the top to print just that day's sheets.</p>
+            <p class="note">If you changed any buildings, you'll be reminded to <strong>download a backup</strong>. Do it! See <a href="#safe">section 6</a>.</p>
           </div>
           <figure><a href="walkthrough/13-send.jpg"><img src="walkthrough/13-send.jpg" alt="Print and send screen with Print driver sheets and Copy all links buttons, and a list of routes with Copy link buttons." loading="lazy" width="1920" height="1230" /></a></figure>
         </div>
@@ -262,6 +300,7 @@
             <h3><span class="num">2</span> What drivers see on paper</h3>
             <p>Each route sheet has the route number, the driver, the stop and bag counts, a QR code, and a numbered list of stops with a checkbox for each.</p>
             <p>Apartment stops show the unit <strong>and the building</strong> in big type. Stops in the same complex are grouped building by building, so drivers don't zig-zag.</p>
+            <p>Bags show how many are special diet, with the diet notes and the family's language on each stop.</p>
             <p>To start, the driver scans the QR code with their phone camera. Google Maps opens with every stop in order, starting from wherever they are.</p>
           </div>
           <figure><a href="walkthrough/15-printed-apartments.jpg"><img src="walkthrough/15-printed-apartments.jpg" alt="Printed route sheet: QR code at top, then stops with Apt 212 and a black Bldg C label, grouped by building." loading="lazy" width="1224" height="1584" /></a></figure>
@@ -276,14 +315,14 @@
           </div>
           <div class="pair">
             <figure><a href="walkthrough/16-printed-long-route.jpg"><img src="walkthrough/16-printed-long-route.jpg" alt="Printed 28-stop route with three QR codes labeled Part 1, Part 2 and Part 3." loading="lazy" width="1224" height="1584" /></a><figcaption>A 28-stop route: three QR codes</figcaption></figure>
-            <figure><a href="walkthrough/14-printed-rural.jpg"><img src="walkthrough/14-printed-rural.jpg" alt="Printed rural route with one QR code and driver notes under addresses." loading="lazy" width="1224" height="1584" /></a><figcaption>A rural route with driver notes</figcaption></figure>
+            <figure><a href="walkthrough/20-printed-table-route.jpg"><img src="walkthrough/20-printed-table-route.jpg" alt="Printed route made from TABLE's workbook, showing special-diet bags, diet notes and languages." loading="lazy" width="1224" height="1584" /></a><figcaption>From TABLE's workbook: diet and language</figcaption></figure>
           </div>
         </div>
       </section>
 
       <!-- ===================== 5. SAFE ===================== -->
       <section class="part" id="safe">
-        <h2>5. Keep your pins safe</h2>
+        <h2>6. Keep your pins safe</h2>
         <p class="lede">Building pins are saved in your browser on this computer, not online. A backup file protects them.</p>
         <div class="step">
           <div>
@@ -294,7 +333,7 @@
           </div>
           <dl class="faq">
             <dt>Does any family information get uploaded?</dt>
-            <dd>No. Names, phone numbers and unit numbers stay on your computer. Only a complex's street address is looked up on the map, once.</dd>
+            <dd>No. Names, phone numbers, unit numbers, diet and health notes stay on your computer. A complex's street address is looked up on the map once. Household street addresses are only looked up if you click “Find these on the map” and confirm.</dd>
             <dt>What if I skip “Needs attention”?</dt>
             <dd>Nothing breaks. Those households go to the main address, like today.</dd>
             <dt>Do drivers need an app?</dt>

@@ -12,8 +12,8 @@ export function openHelp() {
         <h2 id="help-title">How this works</h2><span></span>
       </div>
       <div class="panel-body">
-        <div class="how-step"><span class="n">1</span><div><h3>Upload the week's file</h3><p class="muted">The Routific export or the Monday spreadsheet. The first time, check which column is which. After that it's remembered.</p></div></div>
-        <div class="how-step"><span class="n">2</span><div><h3>Review the routes</h3><p class="muted">If anything needs fixing, it's listed at the top with a button that takes you to the fix. Most weeks, there's nothing to do.</p></div></div>
+        <div class="how-step"><span class="n">1</span><div><h3>Upload the week's file</h3><p class="muted">TABLE's <em>Current Numbers</em> workbook as it is, or a Routific export. The first time, check which column is which. After that it's remembered.</p></div></div>
+        <div class="how-step"><span class="n">2</span><div><h3>Review the routes</h3><p class="muted">No routes in the file? Click <strong>Make routes</strong>: at most 30 bags and under 2 hours each, starting at TABLE. Anything that needs fixing is listed at the top with a button that takes you to the fix.</p></div></div>
         <div class="how-step"><span class="n">3</span><div><h3>Print or text</h3><p class="muted">Each sheet has QR codes. Drivers scan them with their phone camera and Google Maps opens with every stop in order. Nothing to install.</p></div></div>
         <div class="card" style="padding:20px">
           <h3 style="margin-bottom:6px">Apartment complexes</h3>

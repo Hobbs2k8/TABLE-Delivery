@@ -60,29 +60,47 @@ export function orderRouteStops(stops) {
 
 const needsAttention = (s) => s.place && s.place.status !== 'ok';
 
-/** All routes, naturally sorted, with numbered stops and totals. */
+/** "12" -> "Route 12"; names like "Tue 03 · Carrboro" or "Route 01a-Efland" stay as they are. */
+export const routeTitle = (name) => (/^[0-9]+[a-z]?$/i.test(name) ? `Route ${name}` : name);
+
+/**
+ * All routes with numbered stops and totals, sorted by delivery day then name.
+ * Households with no route yet (route '') are left out; see unroutedStops().
+ * A route is identified by day + name, since a driver can run a route on two days.
+ */
 export function buildRoutes(resolvedStops) {
   const byRoute = new Map();
   for (const s of resolvedStops) {
-    if (!byRoute.has(s.route)) byRoute.set(s.route, []);
-    byRoute.get(s.route).push(s);
+    if (!s.route) continue;
+    const id = s.day ? `${s.day}|${s.route}` : s.route;
+    if (!byRoute.has(id)) byRoute.set(id, []);
+    byRoute.get(id).push(s);
   }
   return [...byRoute.entries()]
-    .sort(([a], [b]) => naturalCompare(a, b))
     .map(([id, stops]) => {
       const ordered = orderRouteStops(stops).map((s, i) => ({ ...s, number: i + 1 }));
       const drivers = [...new Set(ordered.map((s) => s.driver).filter(Boolean))];
       const bags = ordered.reduce((sum, s) => sum + (s.bags ?? 0), 0);
+      const special = ordered.reduce((sum, s) => sum + (s.special ?? 0), 0);
       const problems = ordered.filter(needsAttention).length;
       return {
         id,
+        name: stops[0].route,
+        title: routeTitle(stops[0].route),
+        day: stops[0].day || '',
+        dayOrder: stops[0].dayOrder ?? 99,
         driver: drivers.join(', '),
         stops: ordered,
         households: ordered.length,
         bags,
+        special,
         hasBags: ordered.some((s) => s.bags !== null),
         problems,
         status: problems ? 'attention' : 'ready',
       };
-    });
+    })
+    .sort((a, b) => a.dayOrder - b.dayOrder || naturalCompare(a.name, b.name));
 }
+
+/** Households that aren't on any route yet (the file had no routes). */
+export const unroutedStops = (resolvedStops) => resolvedStops.filter((s) => !s.route);

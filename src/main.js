@@ -8,6 +8,7 @@ import './styles/app.css';
 import './styles/print.css';
 
 import { state, recompute } from './state.js';
+import { DEFAULT_RULES } from './lib/makeRoutes.js';
 import { list, getSetting, setSetting } from './store/db.js';
 import { html, raw, mount, icons, el } from './ui/dom.js';
 import { renderUpload } from './ui/upload.js';
@@ -185,7 +186,12 @@ function applyTheme() {
 async function start() {
   applyTheme();
   try {
-    [state.complexes, state.pins, state.perLink] = await Promise.all([list('complexes'), list('pins'), getSetting('perLink', 10)]);
+    [state.complexes, state.pins, state.perLink, state.rules] = await Promise.all([
+      list('complexes'),
+      list('pins'),
+      getSetting('perLink', 10),
+      getSetting('routeRules', DEFAULT_RULES),
+    ]);
   } catch {
     // IndexedDB blocked (e.g. some private windows). The app still works for this session.
     state.complexes = [];

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { splitUnit, normalizeUnit, normalizeStreet, addressKey, parseFullAddress, hasUnitWords, naturalCompare, houseNumber } from '../src/lib/address.js';
+import { splitUnit, normalizeUnit, normalizeStreet, addressKey, parseFullAddress, hasUnitWords, naturalCompare, houseNumber, formatAddress } from '../src/lib/address.js';
 
 describe('splitUnit', () => {
   it.each([
@@ -48,8 +48,16 @@ describe('normalizeStreet / addressKey', () => {
 
 describe('parseFullAddress', () => {
   it('splits comma-separated full addresses', () => {
-    expect(parseFullAddress('400 Sycamore Ln, Chapel Hill, NC 27514')).toEqual({ street: '400 Sycamore Ln', city: 'Chapel Hill', state: 'NC', zip: '27514' });
-    expect(parseFullAddress('400 Sycamore Ln, Chapel Hill NC 27514, USA')).toEqual({ street: '400 Sycamore Ln', city: 'Chapel Hill', state: 'NC', zip: '27514' });
+    expect(parseFullAddress('400 Sycamore Ln, Chapel Hill, NC 27514')).toEqual({ street: '400 Sycamore Ln', unit: '', city: 'Chapel Hill', state: 'NC', zip: '27514' });
+    expect(parseFullAddress('400 Sycamore Ln, Chapel Hill NC 27514, USA')).toEqual({ street: '400 Sycamore Ln', unit: '', city: 'Chapel Hill', state: 'NC', zip: '27514' });
+  });
+  it("reads TABLE's export: street, town with no state or ZIP", () => {
+    expect(parseFullAddress('112 N Churton St, Hillsborough')).toEqual({ street: '112 N Churton St', unit: '', city: 'Hillsborough', state: '', zip: '' });
+  });
+  it('reads the unit as the middle segment', () => {
+    expect(parseFullAddress('820 Eno Mill Rd, 1A, Hillsborough')).toMatchObject({ street: '820 Eno Mill Rd', unit: '1A', city: 'Hillsborough' });
+    expect(parseFullAddress('1105 N Fordham Blvd, Apt 12, Chapel Hill, NC')).toMatchObject({ street: '1105 N Fordham Blvd', unit: '12', city: 'Chapel Hill', state: 'NC' });
+    expect(parseFullAddress('9 Oak Ave, Upstairs, Carrboro')).toMatchObject({ unit: 'UPSTAIRS', city: 'Carrboro' });
   });
   it('leaves unparseable text as the street', () => {
     expect(parseFullAddress('18 Hollow Rd').street).toBe('18 Hollow Rd');
@@ -65,6 +73,10 @@ describe('helpers', () => {
   });
   it('naturalCompare', () => {
     expect(['10', '2', '1'].sort(naturalCompare)).toEqual(['1', '2', '10']);
+  });
+  it('formatAddress adds NC when the file has no state or ZIP', () => {
+    expect(formatAddress({ street: '112 N Churton St', city: 'Hillsborough' })).toBe('112 N Churton St, Hillsborough, NC');
+    expect(formatAddress({ street: '1 Main St', city: 'Carrboro', zip: '27510' })).toBe('1 Main St, Carrboro, 27510');
   });
   it('houseNumber', () => {
     expect(houseNumber('402 Sycamore Lane')).toEqual({ number: 402, name: 'SYCAMORE LN' });

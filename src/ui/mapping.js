@@ -7,7 +7,7 @@ import { getSetting, setSetting } from '../store/db.js';
 import { html, raw, mount } from './dom.js';
 import { loadStops } from './upload.js';
 
-const MAIN_FIELDS = ['route', 'street', 'unit', 'name'];
+const MAIN_FIELDS = ['street', 'route', 'day', 'unit', 'bags'];
 
 function example(header) {
   if (!header) return '';
@@ -22,6 +22,8 @@ function fieldRow(field) {
     <div class="map-row">
       <div>
         <label class="label" for="${id}">${field.label}${field.required ? html` <span class="muted">(needed)</span>` : ''}</label>
+        ${field.key === 'route' ? html`<p class="muted small">No route column? The app can make the routes.</p>` : ''}
+        ${field.key === 'bags' ? html`<p class="muted small">Without it: one bag per row (TABLE's file has one row per child).</p>` : ''}
         <p class="example" data-example="${field.key}">${example(current)}</p>
       </div>
       <label class="field">
@@ -45,7 +47,7 @@ export function renderMapping(main, app) {
         <div class="card">
           ${FIELDS.filter((f) => MAIN_FIELDS.includes(f.key)).map(fieldRow)}
           <details class="more">
-            <summary>${FIELDS.length - MAIN_FIELDS.length} more columns (city, ZIP, bags, phone…)</summary>
+            <summary>${FIELDS.length - MAIN_FIELDS.length} more columns (city, diet, language, phone…)</summary>
             ${FIELDS.filter((f) => !MAIN_FIELDS.includes(f.key)).map(fieldRow)}
           </details>
         </div>

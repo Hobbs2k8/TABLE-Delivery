@@ -4,6 +4,8 @@
 import { state, recompute } from '../state.js';
 import { readRouteFile } from '../lib/parse.js';
 import { detectColumns, headerSignature, mappingFits, rowsToStops } from '../lib/columns.js';
+import { addressKey } from '../lib/address.js';
+import { cachedPoints } from '../services/geocode.js';
 import { getSetting, setSetting } from '../store/db.js';
 import { html, raw, mount, icons, toast, plural } from './dom.js';
 
@@ -29,10 +31,12 @@ export function renderUpload(main, app) {
 
         <div class="privacy-note">
           ${raw(icons.lock)}
-          <p><strong>Family information stays on this computer.</strong> Names, phone numbers and apartment numbers are never uploaded anywhere. Only apartment complex street addresses are looked up on the map.</p>
+          <p><strong>Family information stays on this computer.</strong> Names, phone numbers, apartment numbers, diet and health notes are never uploaded anywhere. Only apartment complex street addresses are looked up on the map, plus household street addresses if you choose “Find on the map” when making routes.</p>
         </div>
         <p class="last-week muted" id="last-week"></p>
-        <p style="margin-top:8px"><button class="link-btn" id="sample">No file handy? Try it with made-up sample data</button></p>
+        <p style="margin-top:8px" class="muted">No file handy? Try it with made-up sample data:
+          <button class="link-btn" id="sample" data-file="table-master-sample.xlsx">TABLE's weekly workbook (no routes yet)</button> or
+          <button class="link-btn" id="sample-routific" data-file="sample-week.csv">a Routific export with apartments</button></p>
       </div>`,
   );
 
@@ -50,11 +54,12 @@ export function renderUpload(main, app) {
     const f = e.dataTransfer.files[0];
     if (f) handleFile(f, app);
   });
-  main.querySelector('#sample').addEventListener('click', async () => {
-    const res = await fetch(`${import.meta.env.BASE_URL}sample-week.csv`);
-    const blob = await res.blob();
-    handleFile(new File([blob], 'sample-week.csv', { type: 'text/csv' }), app);
-  });
+  main.querySelectorAll('[data-file]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const res = await fetch(`${import.meta.env.BASE_URL}${b.dataset.file}`);
+      handleFile(new File([await res.blob()], b.dataset.file), app);
+    }),
+  );
 
   return { next: { label: 'Next', disabled: true }, hint: 'Upload a file to continue' };
 }
@@ -89,10 +94,17 @@ async function handleFile(file, app) {
 
 /** Turn rows into stops with the current mapping, then remember the upload. */
 export async function loadStops(app) {
-  const { stops, skipped } = rowsToStops(state.rows, state.mapping);
-  state.baseStops = stops;
+  const { stops, skipped, pickups, hasRoutes } = rowsToStops(state.rows, state.mapping);
+  state.baseStops = stops.map((s) => ({ ...s, key: addressKey(s) }));
   state.skipped = skipped;
+  state.pickups = pickups;
+  state.fileHasRoutes = hasRoutes;
+  state.assignments = new Map();
+  state.routesMadeAt = null;
   state.selectedRoute = null;
+  state.day = 'all';
+  // Points this browser looked up in earlier weeks (no network).
+  state.lookups = hasRoutes ? new Map() : await cachedPoints(state.baseStops).catch(() => new Map());
   recompute();
   setSetting('lastUpload', { fileName: state.fileName, routes: state.routes.length, stops: stops.length, at: new Date().toISOString() }).catch(() => {});
 }

@@ -2,7 +2,9 @@
 
 A free web app for TABLE's weekly food deliveries (Orange County, NC). The volunteer coordinator uploads the week's route file and gets:
 
-- a printable sheet per route (QR codes, numbered stops, apt + building labels, checkboxes)
+- reads TABLE's **Current Numbers** workbook as-is (MASTER sheet, one row per child) or a Routific export
+- **makes the routes** when the file has none: start at TABLE, ≤30 bags, <2 hours, no drive back, spread over Tue/Wed/Thu
+- a printable sheet per route (QR codes, numbered stops, apt + building labels, regular/special-diet bags, diet notes, language, checkboxes)
 - Google Maps links per route for texting drivers (no app to install)
 - **apartment building locating**: set up a complex once, and every household in it is routed to the right building every week
 
@@ -23,6 +25,9 @@ Family data (names, phones, unit numbers) must **never** leave the browser.
 | Complex street address (street, city, state, ZIP), once per complex | OpenStreetMap Nominatim | `src/services/geocode.js` |
 | A latitude/longitude, once per complex | Overpass API (OSM buildings) | `src/services/buildings.js` |
 | Map tile requests | NC OneMap, USGS, OpenStreetMap | `src/services/tiles.js` |
+| Household street addresses (street, town), **only** if the coordinator clicks “Find on the map” on the Make routes card and confirms | OpenStreetMap Nominatim | `src/services/geocode.js` (`findMany`) |
+
+Route making itself calls no outside service: drive times are estimated from distance. Ask TABLE before using the household lookup with real families; pinning households by hand (or a file with latitude/longitude) avoids it.
 
 That's it. Only files in `src/services/` may call `fetch` to another site. The uploaded file is read in memory (`src/state.js`) and never saved. Saved complexes/pins contain street addresses, building pins and unit *rules*, never names.
 
@@ -58,8 +63,11 @@ src/
   main.js             app shell: header, 3-step progress, footer actions
   state.js            this week's data (memory only) + recompute()
   lib/                pure logic, no DOM, fully unit-tested
-    address.js        unit splitting ("Apt 4B", "#4B", "Bldg 4"), street normalization, keys
-    columns.js        column auto-detection, header-row finding, rows → stops
+    address.js        unit splitting ("Apt 4B", "#4B", "Bldg 4", "street, 1A, town"), street normalization, keys
+    columns.js        column auto-detection, header-row finding, rows → households (child rows grouped, pickups skipped)
+    routing.js        the route search (from monocoder77/table-route-packets, unchanged)
+    makeRoutes.js     route-making input/output: map points, day balancing, clockwise naming, time estimates
+    routeWorker.js    runs routing.js off the main thread
     parse.js          CSV (PapaParse) / Excel (SheetJS) reading
     complexes.js      detect complexes, resolve each stop to building / pin / address
     unitRules.js      unit → building rules (range, starts/ends with, 1xx pattern, one-off, rest)
@@ -78,9 +86,25 @@ sample-data/          fake data only. Never commit real family data (.gitignore 
 
 ### Data flow
 
-`file → readRouteFile → detectColumns (or remembered mapping) → rowsToStops → resolveStops (complexes + pins) → buildRoutes → splitRouteLinks → screens`
+`file → readRouteFile → detectColumns (or remembered mapping) → rowsToStops → [Make routes: routingGroups → build → assignmentsFrom] → resolveStops (complexes + pins) → buildRoutes → splitRouteLinks → screens`
 
-`recompute()` in `state.js` re-runs the last four steps whenever a complex, pin or setting changes.
+`recompute()` in `state.js` re-runs the last steps whenever a complex, pin, route assignment or setting changes.
+
+### TABLE's workbook (MASTER sheet)
+
+| Column | Becomes |
+|---|---|
+| Food Location: Delivery Locations Name | The route. Blank cells take the route above. **TABLE Pickup** is skipped. Missing → Make routes |
+| Food Location: Drop-off Day | Delivery day ("01-Tues" → Tuesday); routes are made within each day |
+| Stop # | Stop order (a household's kids are 3, 3.1, 3.2…) |
+| Program | "Marketplace Pick Up" households are skipped |
+| Mailing Address | The stop; "street, **unit**, town" reads the middle part as the unit; NC is added for maps |
+| one row per child | Bags (one per child) |
+| NeedsLabel / PrefLabel | Special-diet bags / diet notes |
+| Household: Primary Language Spoken at Home | Language on the sheet |
+| Delivery Notes | Notes (shown once per household) |
+
+Importer rules and the route search were ported from **monocoder77/table-route-packets**, which checked them against TABLE's real workbook (its README: bag totals and stop order matched 532 of 533 paper stops). `sample-data/table-master-sample.xlsx` is that project's fake sample in the same shape.
 
 ### Apartment model
 
@@ -114,4 +138,6 @@ A stop resolves to `place.kind` = `building` | `pin` | `address`, and `place.sta
 
 - Pins are per browser. Back up! (The app reminds you after changes.)
 - Map tiles and OSM outlines need internet; everything else works offline once loaded.
-- Later phases this design leaves room for: pull from Salesforce instead of the Excel macro, shared storage, driver "wrong building" reports, our own route optimization (OR-Tools).
+- Made routes live in memory for the session (like the rest of the week's data): print or copy links before closing the tab.
+- Not ported yet from table-route-packets: moving a stop between routes by hand, "best stop order" for one route, the newly-active families list (welcome packets), and "plan a new family".
+- Later phases this design leaves room for: pull from Salesforce instead of the Excel macro, shared storage, driver "wrong building" reports, checking time estimates against real drives.
