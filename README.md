@@ -3,7 +3,7 @@
 A free web app for TABLE's weekly food deliveries (Orange County, NC). The volunteer coordinator uploads the week's route file and gets:
 
 - reads TABLE's **Current Numbers** workbook as-is (MASTER sheet, one row per child) or a Routific export
-- **makes the routes** when the file has none: start at TABLE, ≤30 bags, <2 hours, no drive back, spread over Tue/Wed/Thu
+- **makes the routes** when the file has none: start at TABLE, ≤30 bags, <2 hours, no drive back, spread over Tue/Wed/Thu (optional: most stops per route, e.g. 10 so each route is one Maps link)
 - a printable sheet per route (QR codes, numbered stops, apt + building labels, regular/special-diet bags, diet notes, language, checkboxes)
 - Google Maps links per route for texting drivers (no app to install)
 - **apartment building locating**: set up a complex once, and every household in it is routed to the right building every week
@@ -129,7 +129,7 @@ A stop resolves to `place.kind` = `building` | `pin` | `address`, and `place.sta
 
 ## Free services and their rules
 
-- **Google Maps URLs**: no key needed. Up to 9 waypoints in the app/desktop, **3 in mobile browsers**, 2,048 characters per URL. Default 10 stops per link (9 waypoints + destination); stops in the same building count once. See `lib/mapsLinks.js`.
+- **Google Maps URLs**: no key needed. Up to 9 waypoints in the app/desktop, **3 in mobile browsers**, 2,048 characters per URL. Default 10 stops per link (9 waypoints + destination); stops in the same building count once. Long routes split into even parts (11 → 6 + 5), never a lone last stop. See `lib/mapsLinks.js`.
 - **Nominatim**: max 1 request/second, results must be cached, no autocomplete. We look up once per complex and cache in IndexedDB.
 - **Overpass**: low volume, cached per complex. Public servers are often busy; we time out after 20s, try a second server, and fall back to "Drop a pin".
 - **NC OneMap imagery** (6-inch aerial photos, NC state government), **USGS National Map imagery** (public domain, outside NC), **OpenStreetMap tiles** (light use, attribution). Attribution is shown on every map.
@@ -139,5 +139,6 @@ A stop resolves to `place.kind` = `building` | `pin` | `address`, and `place.sta
 - Pins are per browser. Back up! (The app reminds you after changes.)
 - Map tiles and OSM outlines need internet; everything else works offline once loaded.
 - Made routes live in memory for the session (like the rest of the week's data): print or copy links before closing the tab.
-- Not ported yet from table-route-packets: moving a stop between routes by hand, "best stop order" for one route, the newly-active families list (welcome packets), and "plan a new family".
+- Moving a stop by hand: "Move to another route" under any stop on Review. It goes where it adds the least driving.
+- Not ported yet from table-route-packets: "best stop order" for one route, the newly-active families list (welcome packets), and "plan a new family".
 - Later phases this design leaves room for: pull from Salesforce instead of the Excel macro, shared storage, driver "wrong building" reports, checking time estimates against real drives.

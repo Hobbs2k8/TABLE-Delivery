@@ -74,11 +74,11 @@ describe('sample week (Routific-style CSV)', async () => {
     expect(decodeURIComponent(links[0].url)).toContain('35.910000,-79.086000'); // Building 2
   });
 
-  it('route 3 (28 stops) splits into three links (the duplex counts once), each with a scannable QR code', async () => {
+  it('route 3 (28 stops) splits evenly into three links (the duplex counts once), each with a scannable QR code', async () => {
     const r3 = buildRoutes(resolveStops(stops, { complexes: [sycamore] })).find((r) => r.id === '3');
     expect(r3.households).toBe(28);
     const links = splitRouteLinks(r3.stops, 10);
-    expect(links.map((l) => l.label)).toEqual(['Part 1: stops 1–11', 'Part 2: stops 12–21', 'Part 3: stops 22–28']);
+    expect(links.map((l) => l.label)).toEqual(['Part 1: stops 1–9', 'Part 2: stops 10–19', 'Part 3: stops 20–28']);
     for (const l of links) {
       const qr = QRCode.create(l.url, { errorCorrectionLevel: 'L' });
       expect(qr.version).toBeLessThanOrEqual(15);

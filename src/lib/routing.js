@@ -50,7 +50,7 @@ function routeMinutes(points, depot, stopMinutes) {
 // the search length is an iteration count, never the clock, so the same
 // households always give the same routes.
 //
-// p = {n, time, bags, service, maxBags, maxMinutes, seed}: time[i][j] is
+// p = {n, time, bags, service, maxBags, maxMinutes, maxStops?, seed}: time[i][j] is
 // driving minutes (0 = TABLE, 1..n = households). Returns {routes: [[i, …]]}
 // in driving order. A household that can't fit even alone rides alone.
 
@@ -78,6 +78,8 @@ function solveRoutes(p) {
   const svc = p.service;
   const maxBags = p.maxBags;
   const maxMin = p.maxMinutes;
+  // Optional cap on households per route (e.g. 10 = one Google Maps link). 0/blank = no cap.
+  const maxStops = p.maxStops > 0 ? p.maxStops : Infinity;
   // Seeded PRNG (Mulberry32), floats in [0, 1): the only source of randomness.
   let seedState = (Number.isFinite(p.seed) ? p.seed : 1) >>> 0;
   function rng() {
@@ -176,7 +178,8 @@ function solveRoutes(p) {
   const minRoutes = Math.max(
     1,
     Math.ceil(bagSum / Math.max(maxBags, 1e-9) - 1e-9),
-    Math.ceil(minuteSum / Math.max(maxMin, 1e-9) - 1e-9)
+    Math.ceil(minuteSum / Math.max(maxMin, 1e-9) - 1e-9),
+    Math.ceil(active.length / maxStops - 1e-9)
   );
 
   // ---- Cheapest feasible spot for household c over all routes. Each spot is
@@ -193,7 +196,7 @@ function solveRoutes(p) {
     spotRoute = null;
     for (let ri = 0; ri < routes.length; ri++) {
       const r = routes[ri];
-      if (r.load + b > maxBags) continue;
+      if (r.load + b > maxBags || r.stops.length >= maxStops) continue;
       const room = maxMin - r.mins - svc; // extra driving this route can absorb
       if (room < 0) continue;
       const st = r.stops;
@@ -312,7 +315,7 @@ function solveRoutes(p) {
         let bestT = Infinity;
         for (const i of left) {
           const t = T[at][i];
-          if (t < bestT && load + bags[i] <= maxBags && mins + t + svc <= maxMin) {
+          if (t < bestT && load + bags[i] <= maxBags && stops.length < maxStops && mins + t + svc <= maxMin) {
             best = i;
             bestT = t;
           }
@@ -484,6 +487,7 @@ function build(households, opts) {
     service: opts.stopMinutes,
     maxBags: opts.maxBags,
     maxMinutes: opts.maxMinutes,
+    maxStops: opts.maxStops || 0,
     seed: opts.seed ?? 1,
   };
   const { routes } = solveRoutes(p);

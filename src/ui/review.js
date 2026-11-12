@@ -2,8 +2,8 @@
 // "Needs attention" at the top, a delivery-day filter, the route list on the
 // left and the selected route's driver sheet on the right.
 
-import { state, totals, routeDays, visibleRoutes } from '../state.js';
-import { formatMinutes } from '../lib/makeRoutes.js';
+import { state, totals, routeDays, visibleRoutes, recompute } from '../state.js';
+import { formatMinutes, moveStopAssignments } from '../lib/makeRoutes.js';
 import { dayShort } from '../lib/columns.js';
 import { html, raw, mount, icons, plural, copyText, openModal } from './dom.js';
 import { renderSheet, routeMessage, prepareQrs } from './sheet.js';
@@ -184,6 +184,8 @@ export function renderReview(main, app) {
     } else if (t.dataset.pinStop) {
       const s = state.stops.find((x) => x.id === t.dataset.pinStop);
       if (s) openPinMap(app, s);
+    } else if (t.dataset.moveStop) {
+      openMoveStop(app, t.dataset.moveStop);
     } else if (t.dataset.copyRoute) {
       copyText(routeMessage(state.routes.find((r) => r.id === t.dataset.copyRoute)));
     } else if ('goMapping' in t.dataset) {
@@ -220,5 +222,37 @@ function showAllComplexes(app) {
     if (!k) return;
     m.close();
     openComplexSetup(app, { candidate: issue.items.find((c) => c.key === k) });
+  });
+}
+
+function openMoveStop(app, stopId) {
+  const stop = state.stops.find((s) => s.id === stopId);
+  const from = state.routes.find((r) => r.stops.some((s) => s.id === stopId));
+  if (!stop || !from) return;
+  // Same day first, then the rest.
+  const targets = state.routes
+    .filter((r) => r.id !== from.id)
+    .sort((a, b) => (a.day === from.day ? 0 : 1) - (b.day === from.day ? 0 : 1));
+  const m = openModal({ title: `Move ${stop.street}${stop.unit ? `, Apt ${stop.unit}` : ''}` });
+  const bags = stop.bags ?? 0;
+  mount(
+    m.body,
+    html`<p class="muted small">Now on ${from.title}. Pick the route it should go on. It goes where it adds the least driving.</p>
+      <ul class="place-list">${targets.map((r) => {
+        const over = r.bags + bags > state.rules.maxBags;
+        return html`<li><span><strong>${r.title}</strong>${r.day && r.day !== from.day ? html` <span class="badge badge-plain">${r.day}</span>` : ''}<br />
+          <span class="muted small">${plural(r.households, 'stop')} · ${r.bags + bags} bags after the move${r.minutes != null ? ` · ~${formatMinutes(r.minutes)} now` : ''}${over ? ' · over the bag limit' : ''}</span></span>
+          <button class="btn ${over ? 'btn-outline' : 'btn-primary'} btn-small" data-target="${r.id}">Move here</button></li>`;
+      })}</ul>`,
+  );
+  m.body.addEventListener('click', (e) => {
+    const id = e.target.closest('[data-target]')?.dataset.target;
+    if (!id) return;
+    const target = state.routes.find((r) => r.id === id);
+    for (const [k, v] of moveStopAssignments(stop, target, state.rules, state.lookups)) state.assignments.set(k, v);
+    m.close();
+    recompute();
+    state.selectedRoute = target.id;
+    app.render();
   });
 }

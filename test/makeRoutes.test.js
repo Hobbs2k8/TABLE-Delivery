@@ -7,7 +7,7 @@ import { detectColumns, rowsToStops } from '../src/lib/columns.js';
 import { resolveStops } from '../src/lib/complexes.js';
 import { buildRoutes, unroutedStops } from '../src/lib/routes.js';
 import { build, legMinutes } from '../src/lib/routing.js';
-import { DEFAULT_RULES, routingGroups, assignmentsFrom, estimateMinutes, pointOf, assignDays, routeArea, formatMinutes } from '../src/lib/makeRoutes.js';
+import { DEFAULT_RULES, routingGroups, assignmentsFrom, estimateMinutes, pointOf, assignDays, routeArea, formatMinutes, moveStopAssignments } from '../src/lib/makeRoutes.js';
 
 const file = new File([readFileSync('sample-data/table-master-sample.xlsx')], 'table-master-sample.xlsx');
 const { headers, rows } = await readRouteFile(file);
@@ -112,5 +112,54 @@ describe('helpers', () => {
     expect(formatMinutes(47.4)).toBe('47 min');
     expect(formatMinutes(125)).toBe('2 h 05 min');
     expect(formatMinutes(null)).toBe('');
+  });
+});
+
+describe('stop cap per route', () => {
+  it('with "Most stops per route" = 10, every made route fits in one Maps link', () => {
+    const rules = { ...DEFAULT_RULES, maxStops: 10 };
+    const { assignments } = makeRoutes(parsed.stops, rules);
+    const routes = buildRoutes(resolveStops(apply(parsed.stops, assignments), {}));
+    expect(routes.length).toBeGreaterThan(0);
+    for (const r of routes) {
+      expect(r.households).toBeLessThanOrEqual(10);
+      expect(r.bags).toBeLessThanOrEqual(30);
+    }
+    expect(routes.reduce((n, r) => n + r.households, 0)).toBe(parsed.stops.length);
+  });
+  it('0 means no cap (same routes as before)', () => {
+    const a = makeRoutes(parsed.stops, { ...DEFAULT_RULES, maxStops: 0 }).assignments;
+    const b = makeRoutes(parsed.stops, DEFAULT_RULES).assignments;
+    expect([...a.entries()]).toEqual([...b.entries()]);
+  });
+});
+
+describe('moving a stop by hand', () => {
+  const { assignments } = makeRoutes(parsed.stops);
+  const routes = buildRoutes(resolveStops(apply(parsed.stops, assignments), {}));
+  const [from, to] = routes.filter((r) => r.day === routes[0].day);
+  const stop = from.stops[0];
+  const moved = moveStopAssignments(stop, to, DEFAULT_RULES, new Map());
+
+  it('puts the household on the target route and renumbers that route 1..n', () => {
+    expect(moved.get(stop.id).route).toBe(to.stops[0].route);
+    expect(moved.get(stop.id).day).toBe(to.day);
+    expect([...moved.values()].map((v) => v.order).sort((x, y) => x - y)).toEqual(Array.from({ length: to.households + 1 }, (_, i) => i + 1));
+  });
+  it('the household leaves its old route and nobody is lost', () => {
+    const next = new Map(assignments);
+    for (const [k, v] of moved) next.set(k, v);
+    const after = buildRoutes(resolveStops(apply(parsed.stops, next), {}));
+    expect(after.find((r) => r.id === from.id).households).toBe(from.households - 1);
+    expect(after.find((r) => r.id === to.id).households).toBe(to.households + 1);
+    expect(after.reduce((n, r) => n + r.households, 0)).toBe(parsed.stops.length);
+  });
+  it('goes where it adds the least driving, not always last', () => {
+    const others = to.stops;
+    const order = moved.get(stop.id).order;
+    const pts = [...others.slice(0, order - 1), stop, ...others.slice(order - 1)].map((s) => pointOf(s));
+    const atEnd = [...others, stop].map((s) => pointOf(s));
+    const mins = (p) => estimateMinutes(p.map((x) => ({ lat: x.lat, lng: x.lng })), DEFAULT_RULES);
+    expect(mins(pts)).toBeLessThanOrEqual(mins(atEnd) + 1e-9);
   });
 });
