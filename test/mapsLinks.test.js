@@ -46,9 +46,15 @@ describe('toVisits', () => {
 describe('splitRouteLinks', () => {
   const stops = Array.from({ length: 28 }, (_, i) => house(i + 1));
 
-  it('splits 28 stops into 10 + 10 + 8 with clear labels', () => {
+  it('splits 28 stops evenly into 10 + 9 + 9 with clear labels', () => {
     const links = splitRouteLinks(stops, 10);
-    expect(links.map((l) => l.label)).toEqual(['Part 1: stops 1–10', 'Part 2: stops 11–20', 'Part 3: stops 21–28']);
+    expect(links.map((l) => l.label)).toEqual(['Part 1: stops 1–10', 'Part 2: stops 11–19', 'Part 3: stops 20–28']);
+  });
+
+  it('never leaves a lone stop in the last part: 11 stops become 6 + 5', () => {
+    const links = splitRouteLinks(stops.slice(0, 11), 10);
+    expect(links.map((l) => l.places)).toEqual([6, 5]);
+    expect(splitRouteLinks(stops.slice(0, 10), 10)).toHaveLength(1);
   });
 
   it('builds well-formed Maps URLs: api=1, no origin, driving, ≤9 waypoints', () => {
@@ -80,8 +86,9 @@ describe('splitRouteLinks', () => {
   it('stop ranges count households, so a 6-unit building is still one place', () => {
     const route = [house(1), ...[2, 3, 4, 5, 6, 7].map((i) => bldg(i, 35.9, -79)), ...Array.from({ length: 12 }, (_, i) => house(i + 8))];
     const links = splitRouteLinks(route, 10);
-    expect(links[0].label).toBe('Part 1: stops 1–15');
-    expect(links[0].places).toBe(10);
+    // 14 places split 7 + 7; the building's 6 households take one place.
+    expect(links[0].label).toBe('Part 1: stops 1–12');
+    expect(links[0].places).toBe(7);
   });
 
   it('splits further if a link would pass 2,048 characters', () => {

@@ -97,6 +97,7 @@ export function renderRoutesCard(slot, app) {
             <p class="small muted">Routes start at <strong>${r.depot.label}</strong>. Drive times are estimates from distance (no outside service), so check new routes against what drivers know.</p>
             <label class="field"><span>Most bags per car</span><input type="number" min="1" max="200" data-rule="maxBags" value="${r.maxBags}" /></label>
             <label class="field"><span>Longest route (minutes)</span><input type="number" min="15" max="600" step="5" data-rule="maxMinutes" value="${r.maxMinutes}" /></label>
+            <label class="field"><span>Most stops per route (0 = no limit, 10 fits one Maps link)</span><input type="number" min="0" max="100" data-rule="maxStops" value="${r.maxStops || 0}" /></label>
             <label class="field"><span>Minutes at each door</span><input type="number" min="0" max="30" data-rule="stopMinutes" value="${r.stopMinutes}" /></label>
             ${fileDays
               ? html`<p class="small muted">The file gives each household a delivery day, so routes are made within each day.</p>`

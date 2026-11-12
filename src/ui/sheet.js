@@ -74,6 +74,7 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
           ${notes.map((n) => html`<p class="stop-note">${n}</p>`)}
           ${s.dietNotes?.length ? html`<p class="stop-diet">Special diet: ${s.dietNotes.join(' ')}</p>` : ''}
           ${mode === 'screen' ? warning(s) : ''}
+          ${mode === 'screen' ? html`<div class="stop-tools"><button class="link-btn" data-move-stop="${s.id}">Move to another route</button></div>` : ''}
         </td>
         <td>${aptCell(s)}</td>
         ${hasName ? html`<td>${s.name}${s.language ? html`<div class="lang">${s.language}</div>` : ''}</td>` : ''}

@@ -62,9 +62,12 @@ export function splitRouteLinks(stops, perLink = MAX_STOPS_PER_LINK) {
   const size = Math.max(1, Math.min(MAX_STOPS_PER_LINK, Math.floor(perLink) || MAX_STOPS_PER_LINK));
   const visits = toVisits(stops);
   const chunks = [];
+  // Even parts: 11 places at 10 per link become 6 + 5, not 10 + a lone stop.
+  const parts = Math.ceil(visits.length / size);
   let i = 0;
   while (i < visits.length) {
-    let n = Math.min(size, visits.length - i);
+    const partsLeft = Math.max(1, parts - chunks.length);
+    let n = Math.min(size, Math.ceil((visits.length - i) / partsLeft));
     while (n > 1 && buildDirectionsUrl(visits.slice(i, i + n).map((v) => v.destination)).length > MAX_URL_LENGTH) n--;
     chunks.push(visits.slice(i, i + n));
     i += n;

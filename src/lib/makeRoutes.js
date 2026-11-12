@@ -3,7 +3,7 @@
 // output into route names, days and stop order. Pure functions, no DOM.
 // Naming and day-balancing adapted from monocoder77/table-route-packets.
 
-import { routeMinutes } from './routing.js';
+import { routeMinutes, bestInsertion } from './routing.js';
 import { dayInfo, dayShort } from './columns.js';
 
 export const TABLE_DEPOT = { label: 'TABLE, 311 E Main St, Carrboro', lat: 35.9111695, lng: -79.0676697 };
@@ -13,6 +13,7 @@ export const DEFAULT_RULES = {
   depot: TABLE_DEPOT,
   maxBags: 30,
   maxMinutes: 120,
+  maxStops: 0, // 0 = no cap; 10 keeps every made route in one Google Maps link
   stopMinutes: 4,
   days: ['Tuesday', 'Wednesday', 'Thursday'],
 };
@@ -141,4 +142,22 @@ export function formatMinutes(mins) {
   if (mins == null) return '';
   const m = Math.round(mins);
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`;
+}
+
+/**
+ * Move one household onto another route by hand. It goes where it adds the
+ * fewest minutes (or last, if a stop has no map point). Returns the new
+ * assignments for the moved household and every stop on the target route,
+ * so the target's stop order is written out 1..n.
+ */
+export function moveStopAssignments(stop, target, rules, lookups) {
+  const others = target.stops.filter((s) => s.id !== stop.id);
+  const pts = others.map((s) => pointOf(s, lookups));
+  const p = pointOf(stop, lookups);
+  const index = p && pts.every(Boolean) ? bestInsertion(pts, p, rules.depot, rules.stopMinutes).index : others.length;
+  const ordered = [...others.slice(0, index), stop, ...others.slice(index)];
+  const day = target.day ?? others[0]?.day ?? '';
+  const dayOrder = others[0]?.dayOrder ?? 99;
+  const route = others[0]?.route ?? target.name;
+  return new Map(ordered.map((s, k) => [s.id, { route, order: k + 1, day, dayOrder }]));
 }
