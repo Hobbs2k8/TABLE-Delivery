@@ -30,6 +30,7 @@ export const state = {
   complexes: [],
   pins: [],
   perLink: 10,
+  checkin: { url: '', key: '' }, // TABLE's Apps Script web app, for driver check-ins and shared pins
   rules: DEFAULT_RULES,
 };
 

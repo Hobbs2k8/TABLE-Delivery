@@ -5,7 +5,7 @@
 // with TABLE's "Current Numbers" workbook (MASTER sheet: one row per child,
 // often no routes yet). Rows sharing a route, day and door are one household.
 
-import { splitUnit, parseFullAddress, normalizeUnit, hasUnitWords, addressKey } from './address.js';
+import { splitUnit, parseFullAddress, normalizeUnit, hasUnitWords, addressKey, normalizeTown } from './address.js';
 
 /** Every field the app understands, with the words we look for in headers. */
 export const FIELDS = [
@@ -205,6 +205,7 @@ export function rowsToStops(rows, mapping) {
       zip = p.zip;
       unitFromAddress = p.unit;
     }
+    city = normalizeTown(city);
     const split = splitUnit(streetText);
     const unitCol = get(row, 'unit');
     const unit = normalizeUnit(unitCol) || split.unit || unitFromAddress;

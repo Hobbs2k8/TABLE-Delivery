@@ -7,6 +7,8 @@ A free web app for TABLE's weekly food deliveries (Orange County, NC). The volun
 - a printable sheet per route (QR codes, numbered stops, apt + building labels, regular/special-diet bags, diet notes, language, checkboxes)
 - Google Maps links per route for texting drivers (no app to install)
 - **apartment building locating**: set up a complex once, and every household in it is routed to the right building every week
+- **driver check-in** (optional): a QR code per route opens a phone page where drivers tap Start, Delivered or Problem and can add a photo. Taps go to a Google Sheet in TABLE's own Google account, wait on the phone when there's no signal, and record real route times. Setup: [docs/CHECKIN-SETUP.md](docs/CHECKIN-SETUP.md)
+- **shared building pins** (with check-in on): every computer sees the same apartment setup
 
 No accounts, no server, no API keys. Runs entirely in the browser.
 
@@ -26,12 +28,16 @@ Family data (names, phones, unit numbers) must **never** leave the browser.
 | A latitude/longitude, once per complex | Overpass API (OSM buildings) | `src/services/buildings.js` |
 | Map tile requests | NC OneMap, USGS, OpenStreetMap | `src/services/tiles.js` |
 | Household street addresses (street, town), **only** if the coordinator clicks “Find on the map” on the Make routes card and confirms | OpenStreetMap Nominatim | `src/services/geocode.js` (`findMany`) |
+| Saved complexes and house pins (street addresses, building pins, unit rules; no names), **only** when check-in is set up | TABLE's own Apps Script web app (TABLE's Google account) | `src/store/sync.js` |
+| From drivers' phones: each tap (route, stop #, street, unit, building, bags, time, optional photo and note; no names) | TABLE's own Apps Script web app | `src/driver/main.js` |
 
 Route making itself calls no outside service: drive times are estimated from distance. Ask TABLE before using the household lookup with real families; pinning households by hand (or a file with latitude/longitude) avoids it.
 
-That's it. Only files in `src/services/` may call `fetch` to another site. The uploaded file is read in memory (`src/state.js`) and never saved. Saved complexes/pins contain street addresses, building pins and unit *rules*, never names.
+That's it. Only files in `src/services/`, `src/store/sync.js` and `src/driver/` may call `fetch` to another site. The uploaded file is read in memory (`src/state.js`) and never saved. Saved complexes/pins contain street addresses, building pins and unit *rules*, never names.
 
 Driver links contain street addresses or building coordinates (never units or names). Google receives those when a driver opens the link, the same as typing the address into Maps.
+
+Check-in links carry the route's stops (number, street, unit, building, bags) in the URL's `#fragment`, which browsers never send to the web host. They also hold TABLE's web app URL and key, so treat printed sheets like the paper they replace.
 
 ## Setup
 
@@ -74,13 +80,16 @@ src/
     routes.js         stop order + grouping complex stops by building
     mapsLinks.js      Google Maps URLs, splitting long routes
     issues.js         the "Needs attention" list
+    checkin.js        check-in link (route packed into the #fragment), driver events
   services/           the ONLY code that talks to the internet (see table above)
   store/
     db.js             IndexedDB: complexes, pins, settings, cache
     backup.js         JSON backup export/import + merge
   ui/                 one file per screen/dialog; dom.js has html`` (auto-escaping) + helpers
   styles/             tokens.css (colors, light/dark), app.css, print.css
-test/                 one test file per lib module + sampleWeek.test.js end-to-end
+  driver/             driver.html: the check-in page (main.js) and its outbox (outbox.js, IndexedDB on the phone)
+apps-script/Code.gs   the Google Apps Script TABLE pastes into its own Sheet (check-ins, photos, shared pins)
+test/                 one test file per lib module + sampleWeek.test.js end-to-end; appsScript.test.js runs Code.gs against fake Google services
 sample-data/          fake data only. Never commit real family data (.gitignore helps)
 ```
 
@@ -136,9 +145,9 @@ A stop resolves to `place.kind` = `building` | `pin` | `address`, and `place.sta
 
 ## Known limits / next steps
 
-- Pins are per browser. Back up! (The app reminds you after changes.)
+- Without check-in set up, pins are per browser. Back up! (The app reminds you after changes.) With it, they sync through TABLE's Google account; the most recently saved version of a complex wins.
 - Map tiles and OSM outlines need internet; everything else works offline once loaded.
 - Made routes live in memory for the session (like the rest of the week's data): print or copy links before closing the tab.
 - Moving a stop by hand: "Move to another route" under any stop on Review. It goes where it adds the least driving.
 - Not ported yet from table-route-packets: "best stop order" for one route, the newly-active families list (welcome packets), and "plan a new family".
-- Later phases this design leaves room for: pull from Salesforce instead of the Excel macro, shared storage, driver "wrong building" reports, checking time estimates against real drives.
+- Later phases this design leaves room for: pull from Salesforce instead of the Excel macro, a dashboard of check-ins inside the app (today they are read in the Google Sheet), checking time estimates against the Started/Finished times drivers record.

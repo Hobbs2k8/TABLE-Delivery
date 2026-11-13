@@ -164,6 +164,42 @@ export function houseNumber(street) {
   return m ? { number: Number(m[1]), name: m[2] } : { number: null, name: normalizeStreet(street) };
 }
 
+// Towns TABLE delivers to and nearby. Only these get corrected; anything else is kept as typed.
+export const KNOWN_TOWNS = [
+  'Carrboro', 'Chapel Hill', 'Hillsborough', 'Durham', 'Efland', 'Cedar Grove', 'Mebane',
+  'Rougemont', 'Bahama', 'Graham', 'Burlington', 'Pittsboro', 'Saxapahaw', 'Hurdle Mills', 'Orange Grove',
+];
+
+// Edit distance with swaps of neighbors counted as one edit.
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  }
+  return d[a.length][b.length];
+}
+
+/**
+ * Fix the spelling of a known town: "Chapel HIll" -> "Chapel Hill", "Carborro" -> "Carrboro".
+ * Corrects only when exactly one known town is within 1 edit (2 for names of 7+ letters).
+ * Anything else is returned unchanged.
+ */
+export function normalizeTown(city) {
+  const raw = String(city ?? '').trim().replace(/\s+/g, ' ');
+  if (!raw) return '';
+  const low = raw.toLowerCase();
+  const exact = KNOWN_TOWNS.find((t) => t.toLowerCase() === low);
+  if (exact) return exact;
+  const max = low.length >= 7 ? 2 : 1;
+  const close = KNOWN_TOWNS.filter((t) => editDistance(low, t.toLowerCase()) <= max);
+  return close.length === 1 ? close[0] : raw;
+}
+
 /** One-line address for display and for Maps links (never includes unit). */
 export function formatAddress({ street, city, state, zip }) {
   const tail = [state || (zip ? '' : DEFAULT_STATE), zip].filter(Boolean).join(' ');

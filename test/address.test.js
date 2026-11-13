@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { splitUnit, normalizeUnit, normalizeStreet, addressKey, parseFullAddress, hasUnitWords, naturalCompare, houseNumber, formatAddress } from '../src/lib/address.js';
+import { splitUnit, normalizeUnit, normalizeStreet, addressKey, parseFullAddress, hasUnitWords, naturalCompare, houseNumber, formatAddress, normalizeTown } from '../src/lib/address.js';
 
 describe('splitUnit', () => {
   it.each([
@@ -80,5 +80,22 @@ describe('helpers', () => {
   });
   it('houseNumber', () => {
     expect(houseNumber('402 Sycamore Lane')).toEqual({ number: 402, name: 'SYCAMORE LN' });
+  });
+});
+
+describe('normalizeTown', () => {
+  it('fixes case and small typos of known towns', () => {
+    expect(normalizeTown('Chapel HIll')).toBe('Chapel Hill');
+    expect(normalizeTown('Carborro')).toBe('Carrboro');
+    expect(normalizeTown('  chapel   hill ')).toBe('Chapel Hill');
+    expect(normalizeTown('Hillsborugh')).toBe('Hillsborough');
+    expect(normalizeTown('MEBANE')).toBe('Mebane');
+  });
+  it('leaves unknown or far-off names as typed', () => {
+    expect(normalizeTown('Raleigh')).toBe('Raleigh');
+    expect(normalizeTown('Hillsboro')).toBe('Hillsboro'); // 3 edits away: not guessed
+    expect(normalizeTown('Graham')).toBe('Graham');
+    expect(normalizeTown('Durhm')).toBe('Durham');
+    expect(normalizeTown('')).toBe('');
   });
 });

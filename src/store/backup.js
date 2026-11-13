@@ -1,7 +1,7 @@
 // Backup file: all saved complexes and house pins as one JSON file.
 // Contains street addresses, pins and unit numbers, never household names.
 
-import { list, putMany, setSetting, SCHEMA_VERSION } from './db.js';
+import { list, listAll, putMany, setSetting, SCHEMA_VERSION } from './db.js';
 
 export const BACKUP_KIND = 'table-route-sheets-backup';
 
@@ -37,7 +37,8 @@ export function mergeRecords(existing, incoming) {
 export async function restoreBackup(data) {
   const err = validateBackup(data);
   if (err) throw new Error(err);
-  const [complexes, pins] = await Promise.all([list('complexes'), list('pins')]);
+  // Compare against deleted records too, so an old backup can't bring back something deleted since.
+  const [complexes, pins] = await Promise.all([listAll('complexes'), listAll('pins')]);
   const newComplexes = mergeRecords(complexes, data.complexes);
   const newPins = mergeRecords(pins, data.pins);
   if (newComplexes.length) await putMany('complexes', newComplexes);

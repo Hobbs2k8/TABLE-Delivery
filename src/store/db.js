@@ -45,9 +45,20 @@ async function run(collection, mode, fn) {
   });
 }
 
-export const list = (collection) => run(collection, 'readonly', (s) => s.getAll());
+// Deleted complexes and pins are kept as { id, deleted: true } ("tombstones")
+// so a delete reaches TABLE's shared copy and every other computer.
+const TOMBSTONED = ['complexes', 'pins'];
+
+/** Every record, including deleted ones (for syncing and backups). */
+export const listAll = (collection) => run(collection, 'readonly', (s) => s.getAll());
+/** Records in use (deleted ones left out). */
+export async function list(collection) {
+  const rows = await listAll(collection);
+  return TOMBSTONED.includes(collection) ? rows.filter((r) => !r.deleted) : rows;
+}
 export const get = (collection, id) => run(collection, 'readonly', (s) => s.get(id));
-export const remove = (collection, id) => run(collection, 'readwrite', (s) => s.delete(id));
+export const remove = (collection, id) =>
+  TOMBSTONED.includes(collection) ? put(collection, { id, deleted: true }) : run(collection, 'readwrite', (s) => s.delete(id));
 
 export function put(collection, record) {
   const stamped = { schemaVersion: SCHEMA_VERSION, ...record, updatedAt: new Date().toISOString() };

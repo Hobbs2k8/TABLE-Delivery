@@ -10,6 +10,7 @@ import './styles/print.css';
 import { state, recompute } from './state.js';
 import { DEFAULT_RULES } from './lib/makeRoutes.js';
 import { list, getSetting, setSetting } from './store/db.js';
+import { configure as configureSync, syncNow, scheduleSync } from './store/sync.js';
 import { html, raw, mount, icons, el } from './ui/dom.js';
 import { renderUpload } from './ui/upload.js';
 import { renderMapping } from './ui/mapping.js';
@@ -46,6 +47,15 @@ export const app = {
   },
   async noteChange() {
     await setSetting('unsavedChanges', (await getSetting('unsavedChanges', 0)) + 1);
+    scheduleSync();
+  },
+  /** Save TABLE's check-in URL and key (or clear them), then sync building pins. */
+  async setCheckin(c) {
+    state.checkin = { url: (c?.url || '').trim(), key: (c?.key || '').trim() };
+    await setSetting('checkin', state.checkin).catch(() => {});
+    configureSync(state.checkin);
+    await syncNow();
+    render();
   },
 };
 
@@ -186,11 +196,12 @@ function applyTheme() {
 async function start() {
   applyTheme();
   try {
-    [state.complexes, state.pins, state.perLink, state.rules] = await Promise.all([
+    [state.complexes, state.pins, state.perLink, state.rules, state.checkin] = await Promise.all([
       list('complexes'),
       list('pins'),
       getSetting('perLink', 10),
       getSetting('routeRules', DEFAULT_RULES),
+      getSetting('checkin', { url: '', key: '' }),
     ]);
   } catch {
     // IndexedDB blocked (e.g. some private windows). The app still works for this session.
@@ -198,6 +209,8 @@ async function start() {
     state.pins = [];
   }
   render();
+  configureSync(state.checkin, { pulled: () => app.reloadPlaces() });
+  syncNow();
   window.addEventListener('resize', () => renderHeader());
   if (!(await getSetting('seenHelp', false).catch(() => true))) {
     openHelp();
