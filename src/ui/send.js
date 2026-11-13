@@ -4,6 +4,7 @@ import { state, recompute, totals, visibleRoutes, routeDays } from '../state.js'
 import { MAX_STOPS_PER_LINK } from '../lib/mapsLinks.js';
 import { getSetting, setSetting, list } from '../store/db.js';
 import { downloadBackup } from '../store/backup.js';
+import { testConnection, status as syncStatus, enabled as syncEnabled } from '../store/sync.js';
 import { html, raw, mount, icons, plural, copyText, toast } from './dom.js';
 import { renderSheet, routeMessage, prepareQrs } from './sheet.js';
 
@@ -76,6 +77,26 @@ export function renderSend(main, app) {
               Several apartments in the same building count as one stop.
             </p>
           </div>
+          <div class="card checkin-settings">
+            <h2 class="card-title">Driver check-in and shared building pins</h2>
+            <p class="muted small">
+              Optional. Connects the app to a Google Sheet in TABLE's own Google account. Then each route sheet gets a
+              <strong>Check in deliveries</strong> QR code: drivers tap Delivered (or Problem) at each stop, can add a photo, and every tap lands in
+              the Sheet with the time. Building pins are also shared, so every computer sees the same apartment setup.
+              Set-up takes about 10 minutes, once: <a href="https://github.com/Hobbs2k8/TABLE-Delivery/blob/main/docs/CHECKIN-SETUP.md" target="_blank" rel="noopener noreferrer">step-by-step guide</a>.
+            </p>
+            <label class="field"><span>Web app URL (ends in /exec)</span><input id="ci-url" type="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec" value="${state.checkin?.url || ''}" /></label>
+            <label class="field"><span>Key</span><input id="ci-key" type="text" autocomplete="off" spellcheck="false" value="${state.checkin?.key || ''}" /></label>
+            <div class="row-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+              <button class="btn btn-primary btn-small" data-ci-save>Test and save</button>
+              ${state.checkin?.url ? html`<button class="btn btn-outline btn-small" data-ci-off>Turn off</button>` : ''}
+            </div>
+            <p class="small" id="ci-status" role="status" aria-live="polite">${syncEnabled()
+              ? syncStatus.error
+                ? html`<span style="color:var(--warn)">Connected, but the last sync failed: ${syncStatus.error}</span>`
+                : html`<span style="color:var(--ok)">Connected. Check-in codes are on the sheets.${syncStatus.lastAt ? ` Building pins synced at ${syncStatus.lastAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.` : ''}</span>`
+              : ''}</p>
+          </div>
         </details>
       </div>`,
   );
@@ -93,6 +114,34 @@ export function renderSend(main, app) {
     }),
   );
   main.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(routeMessage(state.routes.find((r) => r.id === b.dataset.copy)))));
+  main.querySelector('[data-ci-save]').addEventListener('click', async () => {
+    const url = main.querySelector('#ci-url').value.trim();
+    const key = main.querySelector('#ci-key').value.trim();
+    const out = main.querySelector('#ci-status');
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) {
+      out.textContent = 'That doesn’t look like an Apps Script web app URL. It starts with https://script.google.com/macros/s/ and ends with /exec.';
+      return;
+    }
+    if (!key) {
+      out.textContent = 'Paste the key that setup() printed.';
+      return;
+    }
+    out.textContent = 'Checking…';
+    try {
+      await testConnection(url, key);
+    } catch (e) {
+      out.textContent = e.message;
+      return;
+    }
+    await app.setCheckin({ url, key });
+    document.querySelector('details.settings-box').open = true;
+    toast('Connected to TABLE’s sheet. Print new sheets to get the check-in codes.');
+  });
+  main.querySelector('[data-ci-off]')?.addEventListener('click', async () => {
+    if (!confirm('Turn off driver check-in? New sheets won’t have the check-in code. Nothing in TABLE’s Sheet is deleted.')) return;
+    await app.setCheckin(null);
+    document.querySelector('details.settings-box').open = true;
+  });
   main.querySelector('#per-link').addEventListener('change', async (e) => {
     const n = Math.max(1, Math.min(MAX_STOPS_PER_LINK, Math.round(Number(e.target.value)) || MAX_STOPS_PER_LINK));
     state.perLink = n;

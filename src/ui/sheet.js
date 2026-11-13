@@ -4,6 +4,8 @@
 import QRCode from 'qrcode';
 import { html, raw, icons, plural } from './dom.js';
 import { formatMinutes } from '../lib/makeRoutes.js';
+import { driverLink, weekOf } from '../lib/checkin.js';
+import { state } from '../state.js';
 
 const qrCache = new Map();
 
@@ -15,8 +17,20 @@ export async function qrSvg(url) {
   return qrCache.get(url);
 }
 
+/** Driver check-in link for a route, or '' when TABLE's check-in sheet isn't set up. */
+export function checkinLink(route) {
+  const c = state.checkin;
+  if (!c?.url || !c?.key || typeof location === 'undefined') return '';
+  return driverLink(location.href, route, { url: c.url, key: c.key, week: weekOf() });
+}
+
 export async function prepareQrs(routes) {
-  await Promise.all(routes.flatMap((r) => r.links.map((l) => qrSvg(l.url))));
+  await Promise.all(
+    routes.flatMap((r) => {
+      const ci = checkinLink(r);
+      return [...r.links.map((l) => qrSvg(l.url)), ...(ci ? [qrSvg(ci)] : [])];
+    }),
+  );
 }
 
 /** Text for texting a driver. */
@@ -24,6 +38,8 @@ export function routeMessage(route) {
   const who = [route.day, route.driver].filter(Boolean).join(', ');
   const lines = [`${route.title}${who ? ` (${who})` : ''}: ${plural(route.households, 'stop')}${route.hasBags ? `, ${plural(route.bags, 'bag')}` : ''}`];
   for (const l of route.links) lines.push(`${l.label}: ${l.url}`);
+  const ci = checkinLink(route);
+  if (ci) lines.push(`Check in each delivery: ${ci}`);
   return lines.join('\n');
 }
 
@@ -91,6 +107,14 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
         <a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>
       </div>`,
   );
+  const ci = checkinLink(route);
+  if (ci) {
+    qrs.push(html`
+      <div class="qr-card checkin">
+        ${raw(qrCache.get(ci) || '<div style="width:152px;height:152px"></div>')}
+        <a href="${ci}" target="_blank" rel="noopener noreferrer">Check in deliveries</a>
+      </div>`);
+  }
 
   return html`
     <article class="sheet" aria-label="${route.title}">
@@ -114,7 +138,7 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
       </div>
       <div class="qr-row">
         ${qrs}
-        <p class="qr-help">Scan with your phone camera. It opens Google Maps with your stops in order. ${route.links.length > 1 ? 'When you finish one part, scan the next.' : ''} Apartment stops go straight to the right building.</p>
+        <p class="qr-help">Scan with your phone camera. It opens Google Maps with your stops in order. ${route.links.length > 1 ? 'When you finish one part, scan the next.' : ''} Apartment stops go straight to the right building.${ci ? ' Scan Check in deliveries to tap off each stop as you go (it saves the time, and you can add a photo).' : ''}</p>
       </div>
       <table class="stops">
         <thead><tr><th>#</th><th>Address</th><th>Apt / Building</th>${hasName ? raw(`<th>${route.stops.some((s) => s.name) ? 'Household' : 'Language'}</th>`) : ''}${hasPhone ? raw('<th>Phone</th>') : ''}<th class="col-bags">Bags</th><th class="col-check">✓</th></tr></thead>

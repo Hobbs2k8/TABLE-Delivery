@@ -18,6 +18,9 @@
   .qr-row { gap: 10pt; margin-bottom: 10pt; break-inside: avoid; }
   .qr-card { width: 1.85in; padding: 6pt; border: 1pt solid #000; }
   .qr-card svg { width: 1.6in; height: 1.6in; }
+  /* The check-in code holds the whole stop list, so it is denser: print it bigger. */
+  .qr-card.checkin { width: 2.45in; border-width: 2pt; }
+  .qr-card.checkin svg { width: 2.2in; height: 2.2in; }
   .qr-card a { text-decoration: none; color: #000; }
   .qr-help { color: #000; font-size: 10pt; }
 

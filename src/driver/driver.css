@@ -1,0 +1,43 @@
+/* Driver check-in page: phone first, big tap targets, readable outdoors. */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg-soft); color: var(--text); font-family: var(--font); font-size: var(--fs-base); line-height: 1.45; }
+.d-main { max-width: 640px; margin: 0 auto; padding: 16px 16px 48px; }
+h1 { font-size: var(--fs-xl); margin: 2px 0 6px; line-height: 1.2; }
+p { margin: 4px 0; }
+.small { font-size: var(--fs-sm); }
+.d-muted { color: var(--text-muted); font-size: var(--fs-sm); }
+.d-card, .d-head, .d-foot { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+.d-head { margin-bottom: 14px; }
+.d-foot { margin-top: 14px; display: grid; gap: 8px; }
+.d-progress { height: 8px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; margin: 8px 0; }
+.d-progress span { display: block; height: 100%; background: var(--ok); transition: width 0.2s; }
+.d-sync { padding: 8px 10px; border-radius: var(--r-sm); font-size: var(--fs-sm); font-weight: 600; margin: 8px 0; }
+.d-sync.ok { background: var(--ok-soft); color: var(--ok); }
+.d-sync.warn { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn-border); }
+.d-stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.d-stop { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px; }
+.d-stop.delivered { border-color: var(--ok); }
+.d-stop.problem { border-color: var(--warn-border); }
+.d-stop-head { display: flex; gap: 12px; align-items: flex-start; }
+.d-num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--primary); color: var(--primary-text); display: grid; place-items: center; font-weight: 800; }
+.d-stop.delivered .d-num { background: var(--ok); color: #fff; }
+.d-addr { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.d-where { font-weight: 700; color: var(--accent-strong); }
+.d-badge { flex: none; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: var(--r-pill); max-width: 40%; }
+.d-badge.ok { background: var(--ok-soft); color: var(--ok); }
+.d-badge.warn { background: var(--warn-soft); color: var(--warn); }
+.d-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.d-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.d-actions > :first-child { grid-column: 1 / -1; min-height: 52px; font-size: var(--fs-base); }
+.d-actions .d-btn { padding: 10px 6px; }
+.d-btn { font: inherit; font-size: var(--fs-sm); font-weight: 700; min-height: 44px; padding: 10px 14px; border-radius: var(--r-pill); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.d-btn.primary { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+.d-btn.big { width: 100%; min-height: 52px; font-size: var(--fs-base); margin-top: 8px; }
+.d-btn:disabled { opacity: 0.45; cursor: default; }
+.d-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.d-problem { margin-top: 10px; padding: 10px; border-radius: var(--r-sm); background: var(--bg-soft); }
+.d-problem fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 6px; }
+.d-problem legend { font-weight: 700; margin-bottom: 4px; }
+.d-problem label { display: flex; gap: 8px; align-items: center; min-height: 36px; }
+.d-note { flex-direction: column; align-items: stretch !important; margin-top: 6px; font-size: var(--fs-sm); }
+.d-note input { font: inherit; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); }
