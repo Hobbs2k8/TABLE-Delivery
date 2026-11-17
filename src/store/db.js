@@ -3,6 +3,8 @@
 // Collections:
 //   complexes  saved apartment complexes, buildings and unit rules
 //   pins       exact pins for single houses
+//   addresses  the address list: every delivery door seen (street, town, unit; no names),
+//              when it was first and last seen, and an exact pin if someone dropped one
 //   settings   column mapping, stops per link, "seen help" flags...
 //   cache      map lookups (address -> point, nearby buildings) so we
 //              never ask OpenStreetMap twice for the same thing
@@ -12,8 +14,8 @@
 // five functions and swap the import in the files that use this one.
 
 const DB_NAME = 'table-route-sheets';
-const DB_VERSION = 1;
-export const COLLECTIONS = ['complexes', 'pins', 'settings', 'cache'];
+const DB_VERSION = 2; // 2 added 'addresses'
+export const COLLECTIONS = ['complexes', 'pins', 'settings', 'cache', 'addresses'];
 export const SCHEMA_VERSION = 1;
 
 let dbPromise = null;
@@ -47,7 +49,7 @@ async function run(collection, mode, fn) {
 
 // Deleted complexes and pins are kept as { id, deleted: true } ("tombstones")
 // so a delete reaches TABLE's shared copy and every other computer.
-const TOMBSTONED = ['complexes', 'pins'];
+const TOMBSTONED = ['complexes', 'pins', 'addresses'];
 
 /** Every record, including deleted ones (for syncing and backups). */
 export const listAll = (collection) => run(collection, 'readonly', (s) => s.getAll());

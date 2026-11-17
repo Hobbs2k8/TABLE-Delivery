@@ -4,10 +4,19 @@ import { detectComplexes } from './complexes.js';
 
 /**
  * Returns [{ kind, title, detail, households, ... }]; each item links to its fix.
- * kind: 'not-routed' | 'over-limit' | 'setup-complex' | 'unmatched-units' | 'conflicts' | 'skipped-rows'
+ * kind: 'new-addresses' | 'not-routed' | 'over-limit' | 'setup-complex' | 'unmatched-units' | 'conflicts' | 'skipped-rows'
  */
-export function findIssues({ stops, complexes, pins = [], skipped = [], routes = [], waiting = [], rules = null }) {
+export function findIssues({ stops, complexes, pins = [], doors = new Map(), skipped = [], routes = [], waiting = [], rules = null, fresh = [] }) {
   const issues = [];
+
+  if (fresh.length) {
+    issues.push({
+      kind: 'new-addresses',
+      title: `${fresh.length} new ${fresh.length === 1 ? 'address' : 'addresses'} this week`,
+      detail: 'Not on the address list yet. Check each one, pin it if it’s hard to find, and see if it’s on the best route.',
+      households: fresh.length,
+    });
+  }
 
   if (waiting.length) {
     const bags = waiting.reduce((n, s) => n + (s.bags ?? 1), 0);
@@ -32,7 +41,7 @@ export function findIssues({ stops, complexes, pins = [], skipped = [], routes =
     });
   }
 
-  const notSetUp = detectComplexes(stops, complexes, pins);
+  const notSetUp = detectComplexes(stops, complexes, pins, doors);
   if (notSetUp.length) {
     const households = notSetUp.reduce((n, c) => n + c.households, 0);
     issues.push({

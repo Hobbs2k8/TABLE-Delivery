@@ -41,7 +41,7 @@ export const app = {
   render,
   /** Reload saved complexes and pins, then rebuild routes. */
   async reloadPlaces() {
-    [state.complexes, state.pins] = await Promise.all([list('complexes'), list('pins')]);
+    [state.complexes, state.pins, state.addressBook] = await Promise.all([list('complexes'), list('pins'), list('addresses')]);
     recompute();
     render();
   },
@@ -196,9 +196,10 @@ function applyTheme() {
 async function start() {
   applyTheme();
   try {
-    [state.complexes, state.pins, state.perLink, state.rules, state.checkin] = await Promise.all([
+    [state.complexes, state.pins, state.addressBook, state.perLink, state.rules, state.checkin] = await Promise.all([
       list('complexes'),
       list('pins'),
+      list('addresses'),
       getSetting('perLink', 10),
       getSetting('routeRules', DEFAULT_RULES),
       getSetting('checkin', { url: '', key: '' }),
@@ -207,6 +208,7 @@ async function start() {
     // IndexedDB blocked (e.g. some private windows). The app still works for this session.
     state.complexes = [];
     state.pins = [];
+    state.addressBook = [];
   }
   render();
   configureSync(state.checkin, { pulled: () => app.reloadPlaces() });

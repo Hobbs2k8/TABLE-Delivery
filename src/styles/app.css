@@ -263,11 +263,14 @@ details.more > summary::-webkit-details-marker { display: none; }
 .send-list { list-style: none; padding: 0; margin: 0; border: 1px solid var(--border); border-radius: var(--r-md); }
 .send-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; flex-wrap: wrap; }
 .send-list li + li { border-top: 1px solid var(--border); }
+.send-item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .send-links { display: flex; gap: 8px; flex-wrap: wrap; }
 .backup-nudge { display: flex; gap: 16px; align-items: center; justify-content: space-between; margin-top: 24px; flex-wrap: wrap; }
 .settings-box { margin-top: 32px; }
 .settings-box .card + .card { margin-top: 16px; }
 .card-title { font-size: var(--fs-lg); margin: 0 0 6px; }
+.address-start { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.address-start > div { flex: 1 1 320px; }
 .checkin-settings .field { max-width: 560px; margin-top: 10px; }
 
 /* ---------- Full-screen overlay + modal ---------- */

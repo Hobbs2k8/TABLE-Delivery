@@ -9,9 +9,12 @@ import { html, raw, mount, icons, plural, copyText, toast } from './dom.js';
 import { renderSheet, routeMessage, prepareQrs } from './sheet.js';
 
 /** Prints the routes for the chosen delivery day (or all of them). */
-export async function printAll() {
-  const routes = visibleRoutes();
-  toast('Getting driver sheets ready…');
+export const printAll = () => printRoutes(visibleRoutes());
+
+/** Prints the given routes, one sheet each. */
+export async function printRoutes(routes) {
+  if (!routes.length) return;
+  toast(routes.length === 1 ? `Getting ${routes[0].title} ready…` : 'Getting driver sheets ready…');
   await prepareQrs(routes);
   mount(document.getElementById('print-root'), routes.map((r) => renderSheet(r, { mode: 'print' })));
   // Give the browser a moment to lay out the SVGs before the print dialog.
@@ -57,7 +60,10 @@ export function renderSend(main, app) {
                   ${r.links.map((l) => html`<a href="${l.url}" target="_blank" rel="noopener noreferrer">${l.label}</a>`)}
                 </div>
               </div>
-              <button class="btn btn-outline btn-small btn-pill" data-copy="${r.id}">${raw(icons.copy)} Copy link</button>
+              <div class="send-item-actions">
+                <button class="btn btn-outline btn-small btn-pill" data-print-one="${r.id}" aria-label="Print ${r.title}">${raw(icons.print)} Print</button>
+                <button class="btn btn-outline btn-small btn-pill" data-copy="${r.id}">${raw(icons.copy)} Copy link</button>
+              </div>
             </li>`,
           )}
         </ul>
@@ -113,6 +119,7 @@ export function renderSend(main, app) {
       main.querySelector(`[data-day="${CSS.escape(b.dataset.day)}"]`)?.focus();
     }),
   );
+  main.querySelectorAll('[data-print-one]').forEach((b) => b.addEventListener('click', () => printRoutes(state.routes.filter((r) => r.id === b.dataset.printOne))));
   main.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => copyText(routeMessage(state.routes.find((r) => r.id === b.dataset.copy)))));
   main.querySelector('[data-ci-save]').addEventListener('click', async () => {
     const url = main.querySelector('#ci-url').value.trim();

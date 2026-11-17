@@ -90,7 +90,7 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
           ${notes.map((n) => html`<p class="stop-note">${n}</p>`)}
           ${s.dietNotes?.length ? html`<p class="stop-diet">Special diet: ${s.dietNotes.join(' ')}</p>` : ''}
           ${mode === 'screen' ? warning(s) : ''}
-          ${mode === 'screen' ? html`<div class="stop-tools"><button class="link-btn" data-move-stop="${s.id}">Move to another route</button></div>` : ''}
+          ${mode === 'screen' ? html`<div class="stop-tools"><button class="link-btn" data-move-stop="${s.id}">Move to another route</button>${s.unit ? html`<button class="link-btn" data-pin-unit="${s.id}">${s.place.doorId ? `Move Apt ${s.unit} pin` : `Pin Apt ${s.unit}`}</button>` : ''}</div>` : ''}
         </td>
         <td>${aptCell(s)}</td>
         ${hasName ? html`<td>${s.name}${s.language ? html`<div class="lang">${s.language}</div>` : ''}</td>` : ''}
@@ -131,6 +131,7 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
         </div>
         ${mode === 'screen'
           ? html`<div class="sheet-actions">
+              <button class="btn btn-outline btn-small btn-pill" data-print-route="${route.id}">${raw(icons.print)} Print this route</button>
               <button class="btn btn-outline btn-small btn-pill" data-copy-route="${route.id}">${raw(icons.copy)} Copy link</button>
               <a class="btn btn-outline btn-small btn-pill" href="${route.links[0]?.url || '#'}" target="_blank" rel="noopener noreferrer">${raw(icons.link)} Open in Google Maps</a>
             </div>`

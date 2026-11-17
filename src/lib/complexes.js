@@ -12,7 +12,7 @@
 // }
 // Saved house pin shape: { id, key, street, city, state, zip, lat, lng, note, updatedAt }
 
-import { addressKey, houseNumber } from './address.js';
+import { addressKey, houseNumber, normalizeUnit } from './address.js';
 import { matchUnit } from './unitRules.js';
 
 /** Index complexes by every address key they answer to. */
@@ -27,13 +27,14 @@ export function indexComplexes(complexes) {
  * and are not set up yet: shared by 2+ households, or with a unit number.
  * Addresses with a saved house pin count as "handled" and are skipped.
  */
-export function detectComplexes(stops, complexes = [], pins = []) {
+export function detectComplexes(stops, complexes = [], pins = [], doors = new Map()) {
   const known = indexComplexes(complexes);
   const pinned = new Set(pins.map((p) => p.key));
+  const unitPinned = (s) => s.unit && doors.has(`${s.key || addressKey(s)}#${normalizeUnit(s.unit).toUpperCase()}`);
   const groups = new Map();
   for (const s of stops) {
     const key = s.key || addressKey(s);
-    if (!key || known.has(key) || pinned.has(key)) continue;
+    if (!key || known.has(key) || pinned.has(key) || unitPinned(s)) continue;
     if (!groups.has(key)) {
       groups.set(key, { key, street: s.street, city: s.city, state: s.state, zip: s.zip, lat: null, lng: null, stops: [], units: new Set(), hasUnit: false });
     }
@@ -85,13 +86,19 @@ export function suggestRelatedAddresses(target, candidates, spread = 60) {
  *   place.kind:   'building' | 'pin' | 'address'
  *   place.status: 'ok' | 'unmatched' (complex set up, unit not covered) | 'not-set-up' (looks like a complex)
  */
-export function resolveStops(stops, { complexes = [], pins = [] } = {}) {
+export function resolveStops(stops, { complexes = [], pins = [], doors = new Map() } = {}) {
   const complexByKey = indexComplexes(complexes);
   const pinByKey = new Map(pins.map((p) => [p.key, p]));
   const withKeys = stops.map((s) => ({ ...s, key: addressKey(s) }));
-  const candidateKeys = new Set(detectComplexes(withKeys, complexes, pins).map((c) => c.key));
+  const candidateKeys = new Set(detectComplexes(withKeys, complexes, pins, doors).map((c) => c.key));
 
   return withKeys.map((s) => {
+    // A pin dropped for this exact door (one apartment unit) beats everything else.
+    const door = s.unit ? doors.get(`${s.key}#${normalizeUnit(s.unit).toUpperCase()}`) : null;
+    if (door) {
+      const complex = complexByKey.get(s.key);
+      return { ...s, place: { kind: 'pin', status: 'ok', lat: door.lat, lng: door.lng, label: '', note: door.note || '', doorId: door.id, complexId: complex?.id, complexName: complex?.name } };
+    }
     const complex = complexByKey.get(s.key);
     if (complex) {
       const m = matchUnit(s, complex);
