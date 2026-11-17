@@ -10,6 +10,7 @@ import { renderSheet, routeMessage, prepareQrs } from './sheet.js';
 import { openComplexSetup } from './complexSetup.js';
 import { openPinMap } from './pinMap.js';
 import { renderRoutesCard, shouldShowRoutesCard } from './routesCard.js';
+import { printRoutes } from './send.js';
 
 let filter = '';
 const smallIcon = (svg) => raw(svg.replace('class="icon"', 'class="icon" style="width:14px;height:14px"'));
@@ -186,6 +187,8 @@ export function renderReview(main, app) {
       if (s) openPinMap(app, s);
     } else if (t.dataset.moveStop) {
       openMoveStop(app, t.dataset.moveStop);
+    } else if (t.dataset.printRoute) {
+      printRoutes(state.routes.filter((r) => r.id === t.dataset.printRoute));
     } else if (t.dataset.copyRoute) {
       copyText(routeMessage(state.routes.find((r) => r.id === t.dataset.copyRoute)));
     } else if ('goMapping' in t.dataset) {

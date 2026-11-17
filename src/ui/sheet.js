@@ -131,6 +131,7 @@ export function renderSheet(route, { mode = 'screen' } = {}) {
         </div>
         ${mode === 'screen'
           ? html`<div class="sheet-actions">
+              <button class="btn btn-outline btn-small btn-pill" data-print-route="${route.id}">${raw(icons.print)} Print this route</button>
               <button class="btn btn-outline btn-small btn-pill" data-copy-route="${route.id}">${raw(icons.copy)} Copy link</button>
               <a class="btn btn-outline btn-small btn-pill" href="${route.links[0]?.url || '#'}" target="_blank" rel="noopener noreferrer">${raw(icons.link)} Open in Google Maps</a>
             </div>`
