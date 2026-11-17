@@ -8,6 +8,7 @@ import { addressKey } from '../lib/address.js';
 import { cachedPoints } from '../services/geocode.js';
 import { getSetting, setSetting } from '../store/db.js';
 import { html, raw, mount, icons, toast, plural } from './dom.js';
+import { saveWeek } from './addressList.js';
 
 let lastError = '';
 
@@ -106,5 +107,6 @@ export async function loadStops(app) {
   // Points this browser looked up in earlier weeks (no network).
   state.lookups = hasRoutes ? new Map() : await cachedPoints(state.baseStops).catch(() => new Map());
   recompute();
+  await saveWeek(); // new doors go on the address list as "not reviewed" (only once the list is started)
   setSetting('lastUpload', { fileName: state.fileName, routes: state.routes.length, stops: stops.length, at: new Date().toISOString() }).catch(() => {});
 }

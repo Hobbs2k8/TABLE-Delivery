@@ -30,7 +30,7 @@ You need: a TABLE Google account (ideally a shared one like deliveries@…, not 
    Google shows "unsafe" for every script it hasn't reviewed. This one only touches this Sheet, one Drive folder and one Drive file.
 3. Open **View → Logs** (or the Execution log at the bottom). Copy the **key** it printed. You need it in step 5.
 
-Setup made: a **Deliveries** tab in the Sheet, a **TABLE delivery photos** folder and a **TABLE shared places.json** file in Drive.
+Setup made: a **Deliveries** tab in the Sheet, a **TABLE delivery photos** folder and a **TABLE shared places.json** file in Drive. That file holds the apartment setup, house pins and (if you start it) the address list: street, town and unit per household, never names.
 
 ## 4. Publish it as a web app
 

@@ -1,9 +1,11 @@
-// Shared building pins: keeps this computer's saved complexes and house pins
+// Shared building pins: keeps this computer's saved complexes, house pins and
+// address list
 // in step with TABLE's own copy (a Drive file run by apps-script/Code.gs).
 // Only on when the coordinator has entered TABLE's check-in URL and key.
 // For each record the most recently saved version wins; deletes travel as
 // { id, deleted: true }. Family names never leave the browser: complexes and
-// pins hold street addresses, building pins and unit rules only.
+// pins hold street addresses, building pins and unit rules; the address list holds
+// street, town and unit per door (no names).
 
 import { listAll, putMany } from './db.js';
 import { mergeRecords } from './backup.js';
@@ -44,16 +46,18 @@ export function syncNow() {
   if (running) return running;
   running = (async () => {
     try {
-      const [complexes, pins] = await Promise.all([listAll('complexes'), listAll('pins')]);
-      const remote = await post(config.url, { action: 'sync', key: config.key, complexes, pins });
+      const [complexes, pins, addresses] = await Promise.all([listAll('complexes'), listAll('pins'), listAll('addresses')]);
+      const remote = await post(config.url, { action: 'sync', key: config.key, complexes, pins, addresses });
       const nc = mergeRecords(complexes, remote.complexes || []);
       const np = mergeRecords(pins, remote.pins || []);
+      const na = mergeRecords(addresses, remote.addresses || []);
       if (nc.length) await putMany('complexes', nc);
       if (np.length) await putMany('pins', np);
+      if (na.length) await putMany('addresses', na);
       status.lastAt = new Date();
       status.error = '';
-      if (nc.length || np.length) await onPulled();
-      return nc.length + np.length;
+      if (nc.length || np.length || na.length) await onPulled();
+      return nc.length + np.length + na.length;
     } catch (e) {
       status.error = e instanceof TypeError ? 'Offline or TABLE’s sheet unreachable. Will try again.' : e.message;
       return 0;

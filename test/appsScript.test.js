@@ -60,4 +60,9 @@ describe('Apps Script backend', () => {
     res = g.post({ action: 'sync', key, complexes: [], pins: [{ id: 'p1', deleted: true, updatedAt: '2026-10-09T00:00:00Z' }] });
     expect(res.pins).toEqual([{ id: 'p1', deleted: true, updatedAt: '2026-10-09T00:00:00Z' }]);
   });
+  it('sync also keeps the address list', () => {
+    const r = { id: '12 ELM ST|CARRBORO#', street: '12 Elm St', city: 'Carrboro', unit: '', reviewed: true, updatedAt: '2026-11-16T00:00:00Z' };
+    expect(g.post({ action: 'sync', key, complexes: [], pins: [], addresses: [r] }).addresses).toEqual([r]);
+    expect(g.post({ action: 'sync', key, complexes: [], pins: [] }).addresses).toEqual([r]);
+  });
 });

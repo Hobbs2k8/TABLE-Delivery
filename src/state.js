@@ -1,11 +1,14 @@
 // App state. This week's family data lives only here, in memory: it is
-// gone when the tab closes and is never saved or sent anywhere.
+// gone when the tab closes. The one exception is the opt-in address list
+// (street, town, unit per door; never names), see lib/addressBook.js.
 
 import { resolveStops } from './lib/complexes.js';
 import { buildRoutes, unroutedStops } from './lib/routes.js';
 import { splitRouteLinks } from './lib/mapsLinks.js';
 import { findIssues } from './lib/issues.js';
 import { DEFAULT_RULES, estimateMinutes } from './lib/makeRoutes.js';
+import { checkWeek, doorPins } from './lib/addressBook.js';
+import { weekOf } from './lib/checkin.js';
 
 export const state = {
   step: 'upload', // 'upload' | 'mapping' | 'review' | 'send'
@@ -29,6 +32,9 @@ export const state = {
   // saved in IndexedDB (loaded at startup)
   complexes: [],
   pins: [],
+  addressBook: [], // the address list (doors seen in earlier weeks; empty until the coordinator starts it)
+  fresh: [], // this week's stops that are new or not reviewed yet
+  freshToSave: [], // address-list records this week adds or updates (saved by upload.js)
   perLink: 10,
   checkin: { url: '', key: '' }, // TABLE's Apps Script web app, for driver check-ins and shared pins
   rules: DEFAULT_RULES,
@@ -37,7 +43,12 @@ export const state = {
 /** Re-run everything after the file, complexes, pins, routes or settings change. */
 export function recompute() {
   const base = state.baseStops.map((s) => (state.assignments.has(s.id) ? { ...s, ...state.assignments.get(s.id) } : s));
-  state.stops = resolveStops(base, { complexes: state.complexes, pins: state.pins });
+  const doors = doorPins(state.addressBook);
+  state.stops = resolveStops(base, { complexes: state.complexes, pins: state.pins, doors });
+  const week = checkWeek(state.stops, state.addressBook, weekOf());
+  const freshIds = new Set(week.fresh.map((s) => s.id));
+  state.fresh = state.stops.filter((s) => freshIds.has(s.id));
+  state.freshToSave = week.toSave;
   state.routes = buildRoutes(state.stops).map((r) => {
     const minutes = estimateMinutes(r.stops, state.rules, state.lookups);
     const overBags = r.bags > state.rules.maxBags;
@@ -49,6 +60,8 @@ export function recompute() {
     stops: state.stops,
     complexes: state.complexes,
     pins: state.pins,
+    doors,
+    fresh: state.fresh,
     skipped: state.skipped,
     routes: state.routes,
     waiting: state.waiting,

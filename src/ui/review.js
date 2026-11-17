@@ -11,6 +11,8 @@ import { openComplexSetup } from './complexSetup.js';
 import { openPinMap } from './pinMap.js';
 import { renderRoutesCard, shouldShowRoutesCard } from './routesCard.js';
 import { printRoutes } from './send.js';
+import { startCard, startList, openNewAddresses } from './addressList.js';
+import { STARTED_ID } from '../lib/addressBook.js';
 
 let filter = '';
 const smallIcon = (svg) => raw(svg.replace('class="icon"', 'class="icon" style="width:14px;height:14px"'));
@@ -42,7 +44,8 @@ function attentionBox() {
         </li>`;
     }
     const action =
-      issue.kind === 'not-routed' ? html`<button class="btn btn-primary btn-small" data-jump-make>Go to Make routes</button>`
+      issue.kind === 'new-addresses' ? html`<button class="btn btn-primary btn-small" data-review-new>Review new addresses</button>`
+      : issue.kind === 'not-routed' ? html`<button class="btn btn-primary btn-small" data-jump-make>Go to Make routes</button>`
       : issue.kind === 'over-limit' ? html`<button class="btn btn-outline btn-small" data-route="${issue.routeId}">Show route</button>`
       : issue.kind === 'unmatched-units' ? html`<button class="btn btn-primary btn-small" data-edit-complex="${issue.complexId}">Add units to buildings</button>`
       : issue.kind === 'conflicts' ? html`<button class="btn btn-outline btn-small" data-edit-complex="${issue.complexId}">Open complex</button>`
@@ -114,6 +117,7 @@ export function renderReview(main, app) {
         <button class="link-btn" data-go-mapping>Change columns</button>
       </div>
       <div id="routes-card-slot"></div>
+      ${state.routes.length && !state.addressBook.some((r) => r.id === STARTED_ID && !r.deleted) ? startCard() : ''}
       ${attentionBox()}
       ${state.routes.length
         ? html`
@@ -187,6 +191,13 @@ export function renderReview(main, app) {
       if (s) openPinMap(app, s);
     } else if (t.dataset.moveStop) {
       openMoveStop(app, t.dataset.moveStop);
+    } else if ('startList' in t.dataset) {
+      startList(app);
+    } else if ('reviewNew' in t.dataset) {
+      openNewAddresses(app);
+    } else if (t.dataset.pinUnit) {
+      const s = state.stops.find((x) => x.id === t.dataset.pinUnit);
+      if (s) openPinMap(app, s, null, { door: true });
     } else if (t.dataset.printRoute) {
       printRoutes(state.routes.filter((r) => r.id === t.dataset.printRoute));
     } else if (t.dataset.copyRoute) {

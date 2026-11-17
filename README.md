@@ -9,6 +9,7 @@ A free web app for TABLE's weekly food deliveries (Orange County, NC). The volun
 - **apartment building locating**: set up a complex once, and every household in it is routed to the right building every week
 - **driver check-in** (optional): a QR code per route opens a phone page where drivers tap Start, Delivered or Problem and can add a photo. Taps go to a Google Sheet in TABLE's own Google account, wait on the phone when there's no signal, and record real route times. Setup: [docs/CHECKIN-SETUP.md](docs/CHECKIN-SETUP.md)
 - **shared building pins** (with check-in on): every computer sees the same apartment setup
+- **address list** (opt-in): remembers every delivery door (street, town, unit; no names). Each week it flags new addresses for review, suggests the route where a new household adds the least driving (only when every stop involved has a real map point), and lets you pin a single apartment unit once for good
 
 No accounts, no server, no API keys. Runs entirely in the browser.
 
@@ -28,12 +29,14 @@ Family data (names, phones, unit numbers) must **never** leave the browser.
 | A latitude/longitude, once per complex | Overpass API (OSM buildings) | `src/services/buildings.js` |
 | Map tile requests | NC OneMap, USGS, OpenStreetMap | `src/services/tiles.js` |
 | Household street addresses (street, town), **only** if the coordinator clicks “Find on the map” on the Make routes card and confirms | OpenStreetMap Nominatim | `src/services/geocode.js` (`findMany`) |
-| Saved complexes and house pins (street addresses, building pins, unit rules; no names), **only** when check-in is set up | TABLE's own Apps Script web app (TABLE's Google account) | `src/store/sync.js` |
+| Saved complexes, house pins and the address list (street addresses, units, building/door pins, unit rules; no names), **only** when check-in is set up | TABLE's own Apps Script web app (TABLE's Google account) | `src/store/sync.js` |
 | From drivers' phones: each tap (route, stop #, street, unit, building, bags, time, optional photo and note; no names) | TABLE's own Apps Script web app | `src/driver/main.js` |
 
 Route making itself calls no outside service: drive times are estimated from distance. Ask TABLE before using the household lookup with real families; pinning households by hand (or a file with latitude/longitude) avoids it.
 
-That's it. Only files in `src/services/`, `src/store/sync.js` and `src/driver/` may call `fetch` to another site. The uploaded file is read in memory (`src/state.js`) and never saved. Saved complexes/pins contain street addresses, building pins and unit *rules*, never names.
+The address list is stored in this browser (IndexedDB) once the coordinator clicks **Start the address list**: street, town, ZIP, unit, first/last week seen, reviewed yes/no, and a pin if someone dropped one. Never names, phones, notes or diet details.
+
+That's it. Only files in `src/services/`, `src/store/sync.js` and `src/driver/` may call `fetch` to another site. The uploaded file is read in memory (`src/state.js`) and never saved; only the address-list fields above are kept, and only after the coordinator opts in. Saved complexes/pins contain street addresses, building pins and unit *rules*, never names.
 
 Driver links contain street addresses or building coordinates (never units or names). Google receives those when a driver opens the link, the same as typing the address into Maps.
 
@@ -81,6 +84,7 @@ src/
     mapsLinks.js      Google Maps URLs, splitting long routes
     issues.js         the "Needs attention" list
     checkin.js        check-in link (route packed into the #fragment), driver events
+    addressBook.js    the address list: door keys, new-this-week check, unit pins, best-route suggestion
   services/           the ONLY code that talks to the internet (see table above)
   store/
     db.js             IndexedDB: complexes, pins, settings, cache

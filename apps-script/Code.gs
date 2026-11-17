@@ -5,8 +5,9 @@
  * Everything it stores stays in that account:
  *   - "Deliveries" tab: one row per driver tap (start, delivered, problem, photo, finish)
  *   - "TABLE delivery photos" Drive folder: photos drivers take (private to TABLE)
- *   - "TABLE shared places.json" Drive file: apartment complexes and house pins,
- *     so every coordinator computer sees the same buildings
+ *   - "TABLE shared places.json" Drive file: apartment complexes, house pins and
+ *     the address list (street, town, unit; no names), so every coordinator
+ *     computer sees the same buildings and knows which addresses are new
  *
  * Setup: docs/CHECKIN-SETUP.md. In short: paste this file into
  * Extensions → Apps Script, run setup() once, deploy as a web app
@@ -115,7 +116,7 @@ function text_(v) {
 // ---------- shared complexes and pins ----------
 
 /**
- * body.complexes / body.pins: the coordinator's records. For each id the most
+ * body.complexes / body.pins / body.addresses: the coordinator's records. For each id the most
  * recently saved version wins (deleted ones are kept as { id, deleted: true }
  * so a delete reaches every computer). Returns everything stored.
  */
@@ -128,7 +129,7 @@ function sync_(body) {
     data = {};
   }
   var out = {};
-  ['complexes', 'pins'].forEach(function (name) {
+  ['complexes', 'pins', 'addresses'].forEach(function (name) {
     var byId = {};
     (data[name] || []).forEach(function (r) { byId[r.id] = r; });
     (Array.isArray(body[name]) ? body[name] : []).forEach(function (r) {
@@ -138,8 +139,8 @@ function sync_(body) {
     });
     out[name] = Object.keys(byId).map(function (id) { return byId[id]; });
   });
-  file.setContent(JSON.stringify({ kind: 'table-route-sheets-shared', savedAt: new Date().toISOString(), complexes: out.complexes, pins: out.pins }));
-  return { ok: true, complexes: out.complexes, pins: out.pins };
+  file.setContent(JSON.stringify({ kind: 'table-route-sheets-shared', savedAt: new Date().toISOString(), complexes: out.complexes, pins: out.pins, addresses: out.addresses }));
+  return { ok: true, complexes: out.complexes, pins: out.pins, addresses: out.addresses };
 }
 
 // ---------- helpers ----------
